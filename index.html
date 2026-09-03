@@ -24,7 +24,9 @@ button,.tab{font-family:inherit;cursor:pointer}.tab{background:var(--panel);colo
 .notice{border-left:3px solid var(--pink);background:#121015;padding:10px 14px;margin-bottom:20px;color:#e4c4d5;font-size:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 .card{background:linear-gradient(145deg,var(--panel2),#0d1015);border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
-.card:hover{border-color:var(--cyan)}.pic{height:175px;background:#080a0d center/cover no-repeat;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);color:#4c5c58;font-size:12px;text-align:center;padding:10px}
+.card:hover{border-color:var(--cyan)}.pic{height:175px;background:#080a0d;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);color:#4c5c58;font-size:12px;text-align:center;padding:10px}
+.marketImg{width:100%;height:175px;object-fit:cover;display:block;border-bottom:1px solid var(--border);background:#080a0d}
+.picFallback{height:175px;background:#080a0d;align-items:center;justify-content:center;border-bottom:1px solid var(--border);color:#4c5c58;font-size:12px;text-align:center;padding:10px}
 .cardbody{padding:15px}.tag{font-size:10px;color:var(--pink);text-transform:uppercase}.name{font-size:21px;color:var(--cyan);margin:5px 0 8px}.desc{font-size:12px;color:#b8c8c4;line-height:1.55;min-height:57px}.buyrow{display:flex;justify-content:space-between;align-items:center;margin-top:15px;gap:8px}.price{color:var(--acid);font-size:18px}.buy{background:var(--pink);color:white;border:0;padding:10px 12px;font-weight:bold;box-shadow:3px 3px 0 #65103f}.buy:disabled{background:#35383e;color:#747b7c;box-shadow:none;cursor:not-allowed}
 .empty{text-align:center;color:var(--muted);padding:60px;border:1px dashed var(--border)}
 #dmPanel{display:none}.dmhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.danger{background:transparent;border:1px solid var(--red);color:var(--red);padding:8px}
@@ -97,19 +99,129 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
 
 <script>
 const SUPABASE_URL="https://hbdmqlopdauicdjpulms.supabase.co";const SUPABASE_KEY="sb_publishable_wMSOehUPo7cQDlym3iQlkA_ch-STqo1";const API=SUPABASE_URL+"/rest/v1";const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
-const CATS=["Weapons","Armor","Gear","Mods","Apps","Misc"];let activeCat="Weapons",listings=[],punks=[],editingListing=null,editingPunk=null,dmPassword="";const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const CATS=["Weapons","Armor","Gear","Mods","Apps","Misc"];let activeCat="Weapons",listings=[],punks=[],editingListing=null,editingPunk=null,dmPassword="";const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function normalizeImageUrl(url){
+  url=(url||"").trim();
+  if(!url)return "";
+
+  const m=url.match(/^https?:\/\/(?:www\.)?pasteboard\.co\/([^/?#]+)\.(png|jpg|jpeg|gif|webp)(?:[?#].*)?$/i);
+
+  if(m){
+    return `https://gcdnb.pbrd.co/images/${m[1]}.${m[2].toLowerCase()}`;
+  }
+
+  return url;
+}
 async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
-async function load(){try{const [l,p]=await Promise.all([api('/store_listings?select=*&order=id.asc'),api('/punks?select=*&order=id.asc')]);listings=l.map(x=>({id:x.id,cat:x.category,name:x.name,price:x.price,img:x.image_url||"",desc:x.description||""}));punks=p;initUI()}catch(e){console.error(e);$('listingGrid').innerHTML=`<div class="empty">DATABASE CONNECTION ERROR.<br>${esc(e.message)}</div>`}}
+async function load(){
+  try{
+    const [l,p]=await Promise.all([
+      api('/store_listings?select=*&order=id.asc'),
+      api('/punks?select=*&order=id.asc')
+    ]);
+
+    listings=l.map(x=>({
+      id:x.id,
+      cat:x.category,
+      name:x.name,
+      price:x.price,
+      img:normalizeImageUrl(x.image_url||""),
+      desc:x.description||""
+    }));
+
+    punks=p;
+    initUI();
+  }catch(e){
+    console.error(e);
+    $('listingGrid').innerHTML=
+      `<div class="empty">DATABASE CONNECTION ERROR.<br>${esc(e.message)}</div>`;
+  }
+}
 function initUI(){$("fCat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");$("tabs").innerHTML=CATS.map(c=>`<button class="tab ${c===activeCat?"active":""}" onclick="setCat('${c}')">${c}</button>`).join("");$("punkSelect").innerHTML=punks.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");let saved=localStorage.getItem("selectedPunk");if(saved&&punks.some(p=>String(p.id)===String(saved)))$("punkSelect").value=saved;else if(punks[0])$("punkSelect").value=punks[0].id;$('punkSelect').onchange=()=>{localStorage.setItem('selectedPunk',$('punkSelect').value);render()};render();renderAdmin()}
 function setCat(c){activeCat=c;$("tabs").innerHTML=CATS.map(x=>`<button class="tab ${x===activeCat?"active":""}" onclick="setCat('${x}')">${x}</button>`).join("");render()}
 function currentPunk(){return punks.find(p=>String(p.id)===String($("punkSelect").value))||punks[0]}
-function render(){const p=currentPunk();$("creditDisplay").textContent=`${p?p.creds:0} CRED${p&&p.creds===1?"":"S"}`;const arr=listings.filter(x=>x.cat===activeCat);$("listingGrid").innerHTML=arr.length?arr.map(x=>{const affordable=p&&p.creds>=Number(x.price);const bg=x.img?`style="background-image:url('${esc(x.img).replace(/'/g,"%27")}')"`:``;return `<article class="card"><div class="pic" ${bg}>${x.img?"":"NO IMAGE // SET ONE IN DM PANEL"}</div><div class="cardbody"><div class="tag">${esc(x.cat)}</div><div class="name">${esc(x.name)}</div><div class="desc">${esc(x.desc)}</div><div class="buyrow"><span class="price">${Number(x.price)} CRED</span><button class="buy" ${affordable?"":"disabled"} onclick="buy(${x.id})">BUY NOW!!!</button></div></div></article>`}).join(""):`<div class="empty">NO STOCK IN THIS SECTION.</div>`}
+function render(){
+  const p=currentPunk();
+
+  $("creditDisplay").textContent=
+    `${p?p.creds:0} CRED${p&&p.creds===1?"":"S"}`;
+
+  const arr=listings.filter(x=>x.cat===activeCat);
+
+  $("listingGrid").innerHTML=arr.length
+    ?arr.map(x=>{
+      const affordable=p&&p.creds>=Number(x.price);
+      const imageUrl=normalizeImageUrl(x.img);
+
+      const imageHtml=imageUrl
+        ?`<img src="${esc(imageUrl)}"
+            class="marketImg"
+            alt="${esc(x.name)}"
+            loading="lazy"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
+        :"";
+
+      return `<article class="card">
+        ${imageHtml}
+        <div class="picFallback" style="display:${imageUrl?"none":"flex"}">
+          NO IMAGE // SET ONE IN DM PANEL
+        </div>
+        <div class="cardbody">
+          <div class="tag">${esc(x.cat)}</div>
+          <div class="name">${esc(x.name)}</div>
+          <div class="desc">${esc(x.desc)}</div>
+          <div class="buyrow">
+            <span class="price">${Number(x.price)} CRED</span>
+            <button class="buy" ${affordable?"":"disabled"} onclick="buy(${x.id})">
+              BUY NOW!!!
+            </button>
+          </div>
+        </div>
+      </article>`;
+    }).join("")
+    :`<div class="empty">NO STOCK IN THIS SECTION.</div>`;
+}
 async function buy(id){try{const p=currentPunk();if(!p)return;const result=await api('/rpc/purchase_item',{method:'POST',body:JSON.stringify({p_punk_id:p.id,p_listing_id:id})});await load();alert("PURCHASE COMPLETE.")}catch(e){alert(e.message.includes("NOT_ENOUGH_CRED")?"NOT ENOUGH CRED.":"PURCHASE FAILED: "+e.message)}}
 function openDM(){$("loginError").textContent="";$('dmPass').value="";$('loginModal').style.display="flex";setTimeout(()=>$('dmPass').focus(),50)}function closeLogin(){$('loginModal').style.display="none"}function checkDM(){if($('dmPass').value==="CY_BORG"){dmPassword=$('dmPass').value;closeLogin();$('storeView').style.display="none";$('dmPanel').style.display="block";renderAdmin()}else $('loginError').textContent="ACCESS DENIED."}function closeDM(){$('dmPanel').style.display="none";$('storeView').style.display="block";render()}
 async function dm(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 function clearListingForm(){editingListing=null;$('fName').value="";$('fPrice').value="";$('fImg').value="";$('fDesc').value="";$('fCat').value=activeCat}
-async function saveListing(){const name=$('fName').value.trim();if(!name)return alert("Listing needs a name.");const data={category:$('fCat').value,name,price:Math.max(0,Number($('fPrice').value)||0),image_url:$('fImg').value.trim(),description:$('fDesc').value.trim()};try{if(editingListing)await dm('edit_listing',{id:editingListing,...data});else await dm('add_listing',data);clearListingForm();await load()}catch(e){alert("DM action failed: "+e.message)}}
-function editListing(id){const x=listings.find(a=>a.id===id);editingListing=id;$('fName').value=x.name;$('fCat').value=x.cat;$('fPrice').value=x.price;$('fImg').value=x.img;$('fDesc').value=x.desc}
+async function saveListing(){
+  const name=$('fName').value.trim();
+
+  if(!name)return alert("Listing needs a name.");
+
+  const data={
+    category:$('fCat').value,
+    name,
+    price:Math.max(0,Number($('fPrice').value)||0),
+    image_url:normalizeImageUrl($('fImg').value),
+    description:$('fDesc').value.trim()
+  };
+
+  try{
+    if(editingListing){
+      await dm('edit_listing',{id:editingListing,...data});
+    }else{
+      await dm('add_listing',data);
+    }
+
+    clearListingForm();
+    await load();
+  }catch(e){
+    alert("DM action failed: "+e.message);
+  }
+}
+function editListing(id){
+  const x=listings.find(a=>a.id===id);
+
+  if(!x)return;
+
+  editingListing=id;
+  $('fName').value=x.name;
+  $('fCat').value=x.cat;
+  $('fPrice').value=x.price;
+  $('fImg').value=normalizeImageUrl(x.img||"");
+  $('fDesc').value=x.desc;
+}
 async function deleteListing(id){if(confirm("Delete this listing?"))try{await dm('delete_listing',{id});await load()}catch(e){alert("DM action failed: "+e.message)}}
 async function savePunk(){const name=$('pName').value.trim();if(!name)return alert("Punk needs a name.");const creds=Math.max(0,Number($('pCreds').value)||0);try{if(editingPunk)await dm('edit_punk',{id:editingPunk,name,creds});else await dm('add_punk',{name,creds});clearPunkForm();await load()}catch(e){alert("DM action failed: "+e.message)}}
 function clearPunkForm(){editingPunk=null;$('pName').value="";$('pCreds').value=""}function editPunk(id){const p=punks.find(x=>x.id===id);editingPunk=id;$('pName').value=p.name;$('pCreds').value=p.creds}
