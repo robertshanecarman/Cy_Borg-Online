@@ -32,10 +32,14 @@ async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
+const draftNewsHeadline=document.getElementById("newsHeadline")?.value||"";
+const draftNewsStory=document.getElementById("newsStory")?.value||"";
 try{const [n,r,j,h,a,p]=await Promise.all([api('/news?select=*&order=id.desc&limit=1'),api('/rumors?select=*&order=created_at.desc'),api('/odd_jobs?select=*&order=created_at.desc'),api('/for_hire?select=*&order=created_at.desc'),api('/ask_ai?select=*&order=created_at.asc'),api('/punks?select=id,name&order=id.asc')]);db.news=n[0]||{headline:"",story:""};db.rumors=r.map(x=>({id:x.id,user:x.username,title:x.title,text:x.body,img:x.image_url||""}));db.jobs=j.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,pay:x.pay||""}));db.hires=h.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,rate:x.rate||"",avail:x.availability||""}));db.asks=a.map(x=>({id:x.id,player:x.player_username,question:x.question,answer:x.answer||"",createdAt:x.created_at}));db.characters=p.map(x=>x.name);nav();render();admin();
 const nq=document.getElementById("question"),np=document.getElementById("askPlayer");
-if(nq && draftQuestion)nq.value=draftQuestion;
-if(np && draftPlayer && [...np.options].some(o=>o.value===draftPlayer))np.value=draftPlayer;
+const nh=document.getElementById("newsHeadline");
+const ns=document.getElementById("newsStory");
+if(nh && draftNewsHeadline)nh.value=draftNewsHeadline;
+if(ns && draftNewsStory)ns.value=draftNewsStory;
 }catch(e){console.error(e);/* Keep navigation and current page usable if a request fails. */}}
 function nav(){document.getElementById("nav").innerHTML=sections.map(s=>`<button class="${s===section?"active":""}" onclick="show('${s}')">${s}</button>`).join("")};function show(s){section=s;nav();render()}
 function render(){let c=document.getElementById("content");if(section==="News Flash!")c.innerHTML=`<div class="sectionTitle">NEWS FLASH!</div><article class="card"><span class="label">BREAKING</span><h3>${esc(db.news.headline)}</h3><div class="meta">CHR-ONLINE NEWS DESK // LIVE</div><div class="story">${esc(db.news.story).replace(/\n/g,"<br>")}</div></article>`;
