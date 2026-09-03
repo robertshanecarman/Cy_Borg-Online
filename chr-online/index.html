@@ -28,7 +28,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const val=id=>(document.getElementById(id)?.value||"").trim(); const clr=id=>{const e=document.getElementById(id);if(e)e.value=""};
 const sections=["News Flash!","Rumor Mill","Odd Jobs","For Hire","ASK AI"];let section=sections[0];
 let db={news:{headline:"",story:""},rumors:[],jobs:[],hires:[],asks:[],characters:[]}; let dmPassword="";
-async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
+async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});const text=await r.text();if(!r.ok)throw new Error(text||("HTTP "+r.status));if(!text)return null;try{return JSON.parse(text)}catch(e){throw new Error("Invalid JSON response: "+text)}}
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
