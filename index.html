@@ -120,14 +120,15 @@ async function load(){
       api('/punks?select=*&order=id.asc')
     ]);
 
-    listings=l.map(x=>({
-      id:x.id,
-      cat:x.category,
-      name:x.name,
-      price:x.price,
-      img:normalizeImageUrl(x.image_url||""),
-      desc:x.description||""
-    }));
+listings=l.map(x=>({
+  id:x.id,
+  cat:x.category,
+  name:x.name,
+  price:x.price,
+  quantity:x.quantity,
+  img:normalizeImageUrl(x.image_url||""),
+  desc:x.description||""
+}));
 
     punks=p;
     initUI();
@@ -230,6 +231,7 @@ function editListing(id){
   $('fName').value=x.name;
   $('fCat').value=x.cat;
   $('fPrice').value=x.price;
+  $('fQty').value=Math.max(0,Number(x.quantity ?? 0));
   $('fImg').value=normalizeImageUrl(x.img||"");
   $('fDesc').value=x.desc;
 }
