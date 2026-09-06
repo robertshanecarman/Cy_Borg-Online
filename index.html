@@ -27,7 +27,7 @@ button,.tab{font-family:inherit;cursor:pointer}.tab{background:var(--panel);colo
 .card:hover{border-color:var(--cyan)}.pic{height:175px;background:#080a0d;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);color:#4c5c58;font-size:12px;text-align:center;padding:10px}
 .marketImg{width:100%;height:175px;object-fit:cover;display:block;border-bottom:1px solid var(--border);background:#080a0d}
 .picFallback{height:175px;background:#080a0d;align-items:center;justify-content:center;border-bottom:1px solid var(--border);color:#4c5c58;font-size:12px;text-align:center;padding:10px}
-.cardbody{padding:15px}.tag{font-size:10px;color:var(--pink);text-transform:uppercase}.name{font-size:21px;color:var(--cyan);margin:5px 0 8px}.desc{font-size:12px;color:#b8c8c4;line-height:1.55;min-height:57px}.buyrow{display:flex;justify-content:space-between;align-items:center;margin-top:15px;gap:8px}.price{color:var(--acid);font-size:18px}.buy{background:var(--pink);color:white;border:0;padding:10px 12px;font-weight:bold;box-shadow:3px 3px 0 #65103f}.buy:disabled{background:#35383e;color:#747b7c;box-shadow:none;cursor:not-allowed}
+.cardbody{padding:15px}.tag{font-size:10px;color:var(--pink);text-transform:uppercase}.name{font-size:21px;color:var(--cyan);margin:5px 0 8px}.desc{font-size:12px;color:#b8c8c4;line-height:1.55;min-height:57px}.buyrow{display:flex;justify-content:space-between;align-items:center;margin-top:15px;gap:8px}.price{color:var(--acid);font-size:18px}.buy{background:var(--pink);color:white;border:0;padding:10px 12px;font-weight:bold;box-shadow:3px 3px 0 #65103f}.buy:disabled{background:#35383e;color:#747b7c;box-shadow:none;cursor:not-allowed}.stock{font-size:10px;color:var(--muted);margin-top:7px;text-transform:uppercase}
 .empty{text-align:center;color:var(--muted);padding:60px;border:1px dashed var(--border)}
 #dmPanel{display:none}.dmhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.danger{background:transparent;border:1px solid var(--red);color:var(--red);padding:8px}
 .adminGrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.adminBox{background:var(--panel);border:1px solid var(--border);padding:16px}
@@ -66,6 +66,7 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
           <div class="field"><label>Name</label><input id="fName"></div>
           <div class="field"><label>Category</label><select id="fCat"></select></div>
           <div class="field"><label>Price (Creds)</label><input id="fPrice" type="number" min="0"></div>
+          <div class="field"><label>Quantity</label><input id="fQty" type="number" min="0" step="1" value="1"></div>
           <div class="field"><label>Image URL</label><input id="fImg" placeholder="https://..."></div>
           <div class="field full"><label>Description</label><textarea id="fDesc"></textarea></div>
         </div>
@@ -83,7 +84,7 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
         <div class="adminList" id="adminPunks"></div>
       </div>
     </div>
-    <p style="font-size:10px;color:#66736f;margin-top:20px">DM MODE IS CLIENT-SIDE. It is intended for a local/shared game table, not serious security. Data is stored in this browser's localStorage.</p>
+    <p style="font-size:10px;color:#66736f;margin-top:20px">DM MODE IS CLIENT-SIDE. It is intended for a local/shared game table, not serious security. Data is stored in the shared Supabase database.</p>
   </section>
 </main>
 <footer>COMPATIBLE WITH CY_BORG // CUSTOM MARKET TOOL // UPLOAD IMAGES VIA PASTEBOARD.CO // MADE WITH AI</footer>
@@ -136,7 +137,11 @@ async function load(){
       `<div class="empty">DATABASE CONNECTION ERROR.<br>${esc(e.message)}</div>`;
   }
 }
-function initUI(){$("fCat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");$("tabs").innerHTML=CATS.map(c=>`<button class="tab ${c===activeCat?"active":""}" onclick="setCat('${c}')">${c}</button>`).join("");$("punkSelect").innerHTML=punks.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");let saved=localStorage.getItem("selectedPunk");if(saved&&punks.some(p=>String(p.id)===String(saved)))$("punkSelect").value=saved;else if(punks[0])$("punkSelect").value=punks[0].id;$('punkSelect').onchange=()=>{localStorage.setItem('selectedPunk',$('punkSelect').value);render()};render();renderAdmin()}
+function initUI(){
+  const savedFormCat=$("fCat").value;
+  $("fCat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
+  $("fCat").value=CATS.includes(savedFormCat)?savedFormCat:activeCat;
+  $("tabs").innerHTML=CATS.map(c=>`<button class="tab ${c===activeCat?"active":""}" onclick="setCat('${c}')">${c}</button>`).join("");$("punkSelect").innerHTML=punks.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");let saved=localStorage.getItem("selectedPunk");if(saved&&punks.some(p=>String(p.id)===String(saved)))$("punkSelect").value=saved;else if(punks[0])$("punkSelect").value=punks[0].id;$('punkSelect').onchange=()=>{localStorage.setItem('selectedPunk',$('punkSelect').value);render()};render();renderAdmin()}
 function setCat(c){activeCat=c;$("tabs").innerHTML=CATS.map(x=>`<button class="tab ${x===activeCat?"active":""}" onclick="setCat('${x}')">${x}</button>`).join("");render()}
 function currentPunk(){return punks.find(p=>String(p.id)===String($("punkSelect").value))||punks[0]}
 function render(){
@@ -149,7 +154,9 @@ function render(){
 
   $("listingGrid").innerHTML=arr.length
     ?arr.map(x=>{
-      const affordable=p&&p.creds>=Number(x.price);
+      const stock=Math.max(0,Number(x.quantity ?? 0));
+      const soldOut=stock<=0;
+      const affordable=p&&p.creds>=Number(x.price)&&!soldOut;
       const imageUrl=normalizeImageUrl(x.img);
 
       const imageHtml=imageUrl
@@ -170,9 +177,12 @@ function render(){
           <div class="name">${esc(x.name)}</div>
           <div class="desc">${esc(x.desc)}</div>
           <div class="buyrow">
-            <span class="price">${Number(x.price)} CRED</span>
+            <div>
+              <span class="price">${Number(x.price)} CRED</span>
+              <div class="stock">${soldOut?"SOLD OUT":"STOCK: "+stock}</div>
+            </div>
             <button class="buy" ${affordable?"":"disabled"} onclick="buy(${x.id})">
-              BUY NOW!!!
+              ${soldOut?"SOLD OUT":"BUY NOW!!!"}
             </button>
           </div>
         </div>
@@ -183,7 +193,7 @@ function render(){
 async function buy(id){try{const p=currentPunk();if(!p)return;const result=await api('/rpc/purchase_item',{method:'POST',body:JSON.stringify({p_punk_id:p.id,p_listing_id:id})});await load();alert("PURCHASE COMPLETE.")}catch(e){alert(e.message.includes("NOT_ENOUGH_CRED")?"NOT ENOUGH CRED.":"PURCHASE FAILED: "+e.message)}}
 function openDM(){$("loginError").textContent="";$('dmPass').value="";$('loginModal').style.display="flex";setTimeout(()=>$('dmPass').focus(),50)}function closeLogin(){$('loginModal').style.display="none"}function checkDM(){if($('dmPass').value==="CY_BORG"){dmPassword=$('dmPass').value;closeLogin();$('storeView').style.display="none";$('dmPanel').style.display="block";renderAdmin()}else $('loginError').textContent="ACCESS DENIED."}function closeDM(){$('dmPanel').style.display="none";$('storeView').style.display="block";render()}
 async function dm(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
-function clearListingForm(){editingListing=null;$('fName').value="";$('fPrice').value="";$('fImg').value="";$('fDesc').value="";$('fCat').value=activeCat}
+function clearListingForm(){editingListing=null;$('fName').value="";$('fPrice').value="";$('fQty').value="1";$('fImg').value="";$('fDesc').value="";$('fCat').value=activeCat}
 async function saveListing(){
   const name=$('fName').value.trim();
 
@@ -193,6 +203,7 @@ async function saveListing(){
     category:$('fCat').value,
     name,
     price:Math.max(0,Number($('fPrice').value)||0),
+    quantity:Math.max(0,Math.floor(Number($('fQty').value)||0)),
     image_url:normalizeImageUrl($('fImg').value),
     description:$('fDesc').value.trim()
   };
@@ -226,7 +237,7 @@ async function deleteListing(id){if(confirm("Delete this listing?"))try{await dm
 async function savePunk(){const name=$('pName').value.trim();if(!name)return alert("Punk needs a name.");const creds=Math.max(0,Number($('pCreds').value)||0);try{if(editingPunk)await dm('edit_punk',{id:editingPunk,name,creds});else await dm('add_punk',{name,creds});clearPunkForm();await load()}catch(e){alert("DM action failed: "+e.message)}}
 function clearPunkForm(){editingPunk=null;$('pName').value="";$('pCreds').value=""}function editPunk(id){const p=punks.find(x=>x.id===id);editingPunk=id;$('pName').value=p.name;$('pCreds').value=p.creds}
 async function deletePunk(id){if(punks.length<=1)return alert("Keep at least one Punk.");if(confirm("Delete this Punk?"))try{await dm('delete_punk',{id});await load()}catch(e){alert("DM action failed: "+e.message)}}
-function renderAdmin(){$('adminListings').innerHTML=listings.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${esc(x.cat)} • ${x.price} CRED</span><span><button class="smallbtn" onclick="editListing(${x.id})">EDIT</button> <button class="smallbtn" onclick="deleteListing(${x.id})">X</button></span></div>`).join("");$('adminPunks').innerHTML=punks.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${x.creds} CRED</span><span><button class="smallbtn" onclick="editPunk(${x.id})">EDIT</button> <button class="smallbtn" onclick="deletePunk(${x.id})">X</button></span></div>`).join("")}
+function renderAdmin(){$('adminListings').innerHTML=listings.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${esc(x.cat)} • ${x.price} CRED • QTY ${Math.max(0,Number(x.quantity ?? 0))}</span><span><button class="smallbtn" onclick="editListing(${x.id})">EDIT</button> <button class="smallbtn" onclick="deleteListing(${x.id})">X</button></span></div>`).join("");$('adminPunks').innerHTML=punks.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${x.creds} CRED</span><span><button class="smallbtn" onclick="editPunk(${x.id})">EDIT</button> <button class="smallbtn" onclick="deletePunk(${x.id})">X</button></span></div>`).join("")}
 load();setInterval(load,5000);
 </script>
 </body>
