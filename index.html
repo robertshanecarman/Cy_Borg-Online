@@ -84,7 +84,7 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
         <div class="adminList" id="adminPunks"></div>
       </div>
     </div>
-    <p style="font-size:10px;color:#66736f;margin-top:20px">DM MODE IS CLIENT-SIDE. It is intended for a local/shared game table, not serious security. Data is stored in the shared Supabase database.</p>
+    <p style="font-size:10px;color:#66736f;margin-top:20px">DM MODE IS CLIENT-SIDE. It is intended for a local/shared game table, not serious security. Data is stored in this browser's localStorage.</p>
   </section>
 </main>
 <footer>COMPATIBLE WITH CY_BORG // CUSTOM MARKET TOOL // UPLOAD IMAGES VIA PASTEBOARD.CO // MADE WITH AI</footer>
@@ -190,7 +190,7 @@ function render(){
     }).join("")
     :`<div class="empty">NO STOCK IN THIS SECTION.</div>`;
 }
-async function buy(id){try{const p=currentPunk();if(!p)return;const result=await api('/rpc/purchase_item',{method:'POST',body:JSON.stringify({p_punk_id:p.id,p_listing_id:id})});await load();alert("PURCHASE COMPLETE.")}catch(e){alert(e.message.includes("NOT_ENOUGH_CRED")?"NOT ENOUGH CRED.":"PURCHASE FAILED: "+e.message)}}
+async function buy(id){try{const p=currentPunk();if(!p)return;const result=await api('/rpc/purchase_item',{method:'POST',body:JSON.stringify({p_punk_id:p.id,p_listing_id:id})});await load();alert("PURCHASE COMPLETE.")}catch(e){alert(e.message.includes("NOT_ENOUGH_CRED")?"NOT ENOUGH CRED.":e.message.includes("SOLD_OUT")?"SOLD OUT.":"PURCHASE FAILED: "+e.message)}}
 function openDM(){$("loginError").textContent="";$('dmPass').value="";$('loginModal').style.display="flex";setTimeout(()=>$('dmPass').focus(),50)}function closeLogin(){$('loginModal').style.display="none"}function checkDM(){if($('dmPass').value==="CY_BORG"){dmPassword=$('dmPass').value;closeLogin();$('storeView').style.display="none";$('dmPanel').style.display="block";renderAdmin()}else $('loginError').textContent="ACCESS DENIED."}function closeDM(){$('dmPanel').style.display="none";$('storeView').style.display="block";render()}
 async function dm(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 function clearListingForm(){editingListing=null;$('fName').value="";$('fPrice').value="";$('fQty').value="1";$('fImg').value="";$('fDesc').value="";$('fCat').value=activeCat}
