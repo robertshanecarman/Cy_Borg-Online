@@ -23,8 +23,7 @@
 const SUPABASE_URL="https://hbdmqlopdauicdjpulms.supabase.co";
 const SUPABASE_KEY="sb_publishable_wMSOehUPo7cQDlym3iQlkA_ch-STqo1";
 const API=SUPABASE_URL+"/rest/v1";
-const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function pasteboardUrl(url){
+const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};function pasteboardUrl(url){
   url=(url||"").trim();
   if(!url)return "";
 
@@ -32,13 +31,11 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
   if(/^https?:\/\/gcdnb\.pbrd\.co\/images\//i.test(url))
     return url;
 
-  // Standard Pasteboard image URL
-  const m=url.match(/^https?:\/\/(?:www\.)?pasteboard\.co\/([^/?#]+?)(?:\.(jpg|jpeg|png|gif|webp))?(?:[/?#].*)?$/i);
+  // Pasteboard image URL
+  const m=url.match(/^https?:\/\/(?:www\.)?pasteboard\.co\/([^/?#]+)\.(jpg|jpeg|png|gif|webp)$/i);
 
   if(m){
-    const id=m[1];
-    const ext=m[2]||"jpg";
-    return "https://gcdnb.pbrd.co/images/"+id+"."+ext;
+    return "https://gcdnb.pbrd.co/images/"+m[1]+"."+m[2];
   }
 
   return url;
