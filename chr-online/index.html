@@ -24,7 +24,11 @@ const SUPABASE_URL="https://hbdmqlopdauicdjpulms.supabase.co";
 const SUPABASE_KEY="sb_publishable_wMSOehUPo7cQDlym3iQlkA_ch-STqo1";
 const API=SUPABASE_URL+"/rest/v1";
 const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function pasteboardUrl(url){
+  url=(url||"").trim();
+  const m=url.match(/^https?:\/\/(?:www\.)?pasteboard\.co\/([^/?#]+)\.(jpg|jpeg|png|gif|webp)$/i);
+  return m ? "https://gcdnb.pbrd.co/images/"+m[1]+"."+m[2] : url;
+}
 const val=id=>(document.getElementById(id)?.value||"").trim(); const clr=id=>{const e=document.getElementById(id);if(e)e.value=""};
 const sections=["News Flash!","Rumor Mill","Odd Jobs","For Hire","ASK AI"];let section=sections[0];
 let db={news:{headline:"",story:"",img:""},rumors:[],jobs:[],hires:[],asks:[],characters:[]}; let dmPassword="";
