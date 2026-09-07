@@ -23,7 +23,9 @@
 const SUPABASE_URL="https://hbdmqlopdauicdjpulms.supabase.co";
 const SUPABASE_KEY="sb_publishable_wMSOehUPo7cQDlym3iQlkA_ch-STqo1";
 const API=SUPABASE_URL+"/rest/v1";
-const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};function pasteboardUrl(url){
+const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function pasteboardUrl(url){
   url=(url||"").trim();
   if(!url)return "";
 
