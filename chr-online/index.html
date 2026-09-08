@@ -45,7 +45,7 @@ function pasteboardUrl(url){
 const val=id=>(document.getElementById(id)?.value||"").trim(); const clr=id=>{const e=document.getElementById(id);if(e)e.value=""};
 const sections=["News Flash!","Rumor Mill","Odd Jobs","For Hire","ASK AI"];let section=sections[0];
 let db={news:{headline:"",story:"",img:""},rumors:[],jobs:[],hires:[],asks:[],characters:[]}; let dmPassword="";
-async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
+async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());const text=await r.text();return text?JSON.parse(text):null}
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
