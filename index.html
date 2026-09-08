@@ -100,7 +100,7 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
 
 <script>
 const SUPABASE_URL="https://hbdmqlopdauicdjpulms.supabase.co";const SUPABASE_KEY="sb_publishable_wMSOehUPo7cQDlym3iQlkA_ch-STqo1";const API=SUPABASE_URL+"/rest/v1";const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
-const CATS=["Weapons","Armor","Drugs","Mods","Apps","Misc"];let activeCat="Weapons",listings=[],punks=[],editingListing=null,editingPunk=null,dmPassword="";const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function normalizeImageUrl(url){
+const CATS=["Weapons","Armor","Chems","Mods","Apps","Misc"];let activeCat="Weapons",listings=[],punks=[],editingListing=null,editingPunk=null,dmPassword="";const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function normalizeImageUrl(url){
   url=(url||"").trim();
   if(!url)return "";
 
