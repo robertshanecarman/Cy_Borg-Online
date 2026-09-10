@@ -89,7 +89,6 @@ let db={
   characters:[],
   punks:[],
   profile:null,
-  profileTemplate:null
 };
 let dmPassword="";
 let selectedProfilePunk=localStorage.getItem("chrProfilePunk")||"";
@@ -233,228 +232,270 @@ function render(){
       '</div></div>';
   }
   if(section==="My Profile"){
-    const punk=db.punks.find(x=>String(x.id)===String(selectedProfilePunk))||db.punks[0];
 
-    if(!punk){
-      c.innerHTML=
-        '<div class="sectionTitle">MY PROFILE</div>'+
-        '<div class="empty">NO CHARACTERS FOUND.</div>';
-      return;
-    }
+  const punk=db.punks.find(
+    x=>String(x.id)===String(selectedProfilePunk)
+  )||db.punks[0];
 
-    selectedProfilePunk=String(punk.id);
-    localStorage.setItem("chrProfilePunk",selectedProfilePunk);
+  if(!punk){
+    c.innerHTML=
+      '<div class="sectionTitle">MY PROFILE</div>'+
+      '<div class="empty">NO CHARACTERS FOUND.</div>';
+    return;
+  }
 
-    const profile=db.profile||{
-      handle:"",
-      about_me:"",
-      image_url:"",
-      data:{}
-    };
+  selectedProfilePunk=String(punk.id);
+  localStorage.setItem("chrProfilePunk",selectedProfilePunk);
 
-const image=profile.image_url||"";
-const handle=profile.handle||punk.name;
-const about=profile.about_me||"";
+  const profile=db.profile||{
+    handle:"",
+    about_me:"",
+    image_url:"",
+    data:{}
+  };
 
-const profileData=profile.data||{};
-const playerName=profileData.player_name||"";
-const pronouns=profileData.pronouns||"";
-const hp=profileData.hp??"";
-const armor=profileData.armor??"";
-const notes=profileData.notes||"";
+  const image=profile.image_url||"";
+  const handle=profile.handle||punk.name;
+  const about=profile.about_me||"";
 
-    c.innerHTML=`
-      <div class="sectionTitle">MY PROFILE</div>
+  const profileData=profile.data||{};
+  const playerName=profileData.player_name||"";
+  const pronouns=profileData.pronouns||"";
+  const hp=profileData.hp??"";
+  const armor=profileData.armor??"";
+  const notes=profileData.notes||"";
+
+  c.innerHTML=`
+
+    <div class="sectionTitle">MY PROFILE</div>
+
+    <div style="
+      border:2px solid var(--ink);
+      background:var(--paper);
+      padding:20px;
+      margin-bottom:24px;
+      box-shadow:4px 4px 0 var(--line);
+    ">
 
       <div style="
-        border:2px solid #111;
-        background:#f5f0e6;
-        padding:20px;
-        margin-bottom:20px;
+        display:flex;
+        gap:20px;
+        align-items:flex-start;
+        flex-wrap:wrap;
       ">
 
-        <div style="
-          display:flex;
-          gap:20px;
-          align-items:flex-start;
-          flex-wrap:wrap;
-        ">
+        <div style="width:180px;flex-shrink:0">
 
-          <div style="width:180px">
+          <div style="
+            width:180px;
+            height:180px;
+            border:2px solid var(--ink);
+            background:#ddd;
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:11px;
+          ">
+            ${
+              image
+              ? `<img src="${esc(image)}"
+                  style="width:100%;height:100%;object-fit:cover">`
+              : "NO IMAGE"
+            }
+          </div>
 
-            <div style="
-              width:180px;
-              height:180px;
-              border:2px solid #111;
-              background:#ddd;
-              overflow:hidden;
-              display:flex;
-              align-items:center;
-              justify-content:center;
-              font-family:monospace;
-              font-size:12px;
-            ">
-              ${
-                image
-                ? `<img src="${esc(image)}"
-                    style="width:100%;height:100%;object-fit:cover">`
-                : "NO IMAGE"
-              }
+        </div>
+
+
+        <div style="flex:1;min-width:240px">
+
+          <div class="meta">CHARACTER PROFILE</div>
+
+          <h1 style="
+            margin:4px 0 2px;
+            font:700 32px 'Space Grotesk';
+          ">
+            ${esc(punk.name)}
+          </h1>
+
+          <div style="
+            color:var(--blue);
+            font-size:12px;
+            margin-bottom:14px;
+          ">
+            @${esc(handle)}
+          </div>
+
+
+          <div id="profileDisplay">
+
+            <div class="profileStat">
+              <span>PLAYER NAME</span>
+              <strong>${esc(playerName||"UNASSIGNED")}</strong>
             </div>
 
+            <div class="profileStats">
+
+              <div class="profileStat">
+                <span>PRONOUNS</span>
+                <strong>${esc(pronouns||"—")}</strong>
+              </div>
+
+
+              <div class="profileStat">
+
+                <span>HP</span>
+
+                <input
+                  id="quickHP"
+                  type="number"
+                  value="${esc(hp)}"
+                  onchange="saveQuickProfileField('hp',this.value)"
+                  style="
+                    width:100%;
+                    border:0;
+                    border-bottom:1px solid var(--line);
+                    background:transparent;
+                    padding:4px 0;
+                    font:700 18px 'Space Grotesk';
+                  "
+                >
+
+              </div>
+
+
+              <div class="profileStat">
+
+                <span>ARMOR</span>
+
+                <input
+                  id="quickArmor"
+                  type="number"
+                  value="${esc(armor)}"
+                  onchange="saveQuickProfileField('armor',this.value)"
+                  style="
+                    width:100%;
+                    border:0;
+                    border-bottom:1px solid var(--line);
+                    background:transparent;
+                    padding:4px 0;
+                    font:700 18px 'Space Grotesk';
+                  "
+                >
+
+              </div>
+
+            </div>
+
+
+            <div class="profileStat">
+
+              <span>ABOUT ME</span>
+
+              <div class="profileText">
+                ${
+                  about
+                  ? esc(about).replace(/\n/g,"<br>")
+                  : "No information provided."
+                }
+              </div>
+
+            </div>
+
+
+            <button class="save" onclick="editProfile()">
+              EDIT PROFILE
+            </button>
 
           </div>
 
-          <div style="flex:1;min-width:240px">
 
-            <div class="meta">CHARACTER PROFILE</div>
+          <div id="profileEditor" style="display:none">
 
-            <h1 style="margin:4px 0;font-size:32px">
-              ${esc(punk.name)}
-            </h1>
+            <div class="field">
 
-            <div style="
-              font-family:monospace;
-              margin-bottom:18px;
-            ">
-              @${esc(handle)}
+              <label>PLAYER NAME</label>
+
+              <input
+                id="profilePlayerName"
+                value="${esc(playerName)}"
+                placeholder="Your name"
+              >
+
             </div>
 
-<div id="profileDisplay">
 
-  <div class="profileStat">
-    <span>PLAYER NAME</span>
-    <strong>${esc(playerName||"UNASSIGNED")}</strong>
-  </div>
+            <div class="field">
 
-  <div class="profileStat">
-    <span>HANDLE</span>
-    <strong>@${esc(handle||"")}</strong>
-  </div>
+              <label>HANDLE</label>
 
-  <div class="profileStats">
+              <input
+                id="profileHandle"
+                value="${esc(profile.handle||"")}"
+                placeholder="Your handle"
+              >
 
-    <div class="profileStat">
-      <span>PRONOUNS</span>
-      <strong>${esc(pronouns||"—")}</strong>
-    </div>
+            </div>
 
-    <div class="profileStat">
-      <span>HP</span>
-      <strong>${hp===""||hp===null?"—":esc(hp)}</strong>
-    </div>
 
-    <div class="profileStat">
-      <span>ARMOR</span>
-      <strong>${armor===""||armor===null?"—":esc(armor)}</strong>
-    </div>
+            <div class="field">
 
-  </div>
+              <label>PRONOUNS</label>
 
-  <div class="profileStat">
-    <span>ABOUT ME</span>
-    <div class="profileText">
-      ${about?esc(about).replace(/\n/g,"<br>"):"No information provided."}
-    </div>
-  </div>
+              <input
+                id="profilePronouns"
+                value="${esc(pronouns)}"
+                placeholder="e.g. they/them"
+              >
 
-  <div class="profileStat">
-    <span>NOTES</span>
-    <div class="profileText">
-      ${notes?esc(notes).replace(/\n/g,"<br>"):"No notes."}
-    </div>
-  </div>
+            </div>
 
-  <button class="save" onclick="editProfile()">
-    EDIT PROFILE
-  </button>
 
-</div>
+            <div class="field">
 
-<div id="profileEditor" style="display:none">
+              <label>ABOUT ME</label>
 
-  <div class="field">
-    <label>PLAYER NAME</label>
-    <input
-      id="profilePlayerName"
-      value="${esc(playerName)}"
-      placeholder="Your name">
-  </div>
+              <textarea
+                id="profileAbout"
+                placeholder="Tell the world who you are..."
+              >${esc(about)}</textarea>
 
-  <div class="field">
-    <label>HANDLE</label>
-    <input
-      id="profileHandle"
-      value="${esc(profile.handle||"")}"
-      placeholder="Your handle">
-  </div>
+            </div>
 
-  <div class="field">
-    <label>PRONOUNS</label>
-    <input
-      id="profilePronouns"
-      value="${esc(pronouns)}"
-      placeholder="e.g. they/them">
-  </div>
 
-  <div class="fields">
+            <div class="field">
 
-    <div class="field">
-      <label>HP</label>
-      <input
-        id="profileHP"
-        type="number"
-        value="${hp??""}"
-        placeholder="0">
-    </div>
+              <label>PROFILE IMAGE</label>
 
-    <div class="field">
-      <label>ARMOR</label>
-      <input
-        id="profileArmor"
-        type="number"
-        value="${armor??""}"
-        placeholder="0">
-    </div>
+              <input
+                id="profileImage"
+                type="file"
+                accept="image/*"
+                style="width:100%"
+              >
 
-  </div>
+            </div>
 
-  <div class="field">
-    <label>ABOUT ME</label>
-    <textarea
-      id="profileAbout"
-      placeholder="Tell the world who you are...">${esc(about)}</textarea>
-  </div>
 
-  <div class="field">
-    <label>NOTES</label>
-    <textarea
-      id="profileNotes"
-      placeholder="Character notes...">${esc(notes)}</textarea>
-  </div>
+            <button class="save" onclick="saveProfile()">
+              SAVE PROFILE
+            </button>
 
-  <div class="field">
-    <label>PROFILE IMAGE</label>
-    <input
-      id="profileImage"
-      type="file"
-      accept="image/*"
-      style="width:100%">
-  </div>
-
-  <button class="save" onclick="saveProfile()">
-    SAVE PROFILE
-  </button>
-
-  <button
-    type="button"
-    class="cancel"
-    onclick="cancelProfileEdit()"
-    style="margin-left:8px;padding:10px;border:2px solid var(--ink);background:transparent;cursor:pointer">
-    CANCEL
-  </button>
-
-</div>
+            <button
+              type="button"
+              class="cancel"
+              onclick="cancelProfileEdit()"
+              style="
+                margin-left:8px;
+                padding:10px;
+                border:2px solid var(--ink);
+                background:transparent;
+                cursor:pointer;
+              "
+            >
+              CANCEL
+            </button>
 
           </div>
 
@@ -462,27 +503,84 @@ const notes=profileData.notes||"";
 
       </div>
 
-      <div class="grid">
+    </div>
 
-        <article class="card">
-          <span class="label">CONNECTED ACCOUNT</span>
-          <h3>${esc(punk.name)}</h3>
-          <div class="meta">CHR-ONLINE CHARACTER ID // ${esc(punk.id)}</div>
-        </article>
 
-        <article class="card">
-          <span class="label">CRED</span>
-          <h3>${esc(punk.creds ?? 0)}</h3>
-          <div class="meta">LINKED TO CAMPAIGN CRED BALANCE</div>
-        </article>
+    <div class="sectionTitle">CRED</div>
 
+    <article class="card" style="margin-bottom:24px">
+
+      <span class="label">CRED</span>
+
+      <h3 style="font-size:28px">
+        ${esc(punk.creds??0)}
+      </h3>
+
+      <div class="meta">
+        LINKED CAMPAIGN BALANCE
       </div>
 
-      <div id="profileSheet"></div>
-    `;
+    </article>
 
-    loadProfileSheet(punk.id);
-  }}
+
+    <div class="sectionTitle">STATS</div>
+
+    <div id="profileStats">
+
+      <div class="empty">
+        NO CUSTOM STATS CONFIGURED YET.
+      </div>
+
+    </div>
+
+
+    <div class="sectionTitle" style="margin-top:26px">
+      INVENTORY
+    </div>
+
+    <div id="profileInventory">
+
+      <div class="empty">
+        INVENTORY CONNECTION COMING NEXT.
+      </div>
+
+    </div>
+
+
+    <div class="sectionTitle" style="margin-top:26px">
+      NOTES
+    </div>
+
+    <div class="card">
+
+      <textarea
+        id="quickNotes"
+        placeholder="Character notes..."
+        style="
+          width:100%;
+          min-height:150px;
+          resize:vertical;
+          background:#fffdf4;
+          border:2px solid var(--ink);
+          padding:11px;
+          font:12px 'IBM Plex Mono';
+        "
+      >${esc(notes)}</textarea>
+
+      <button
+        class="save"
+        onclick="saveQuickProfileField(
+          'notes',
+          document.getElementById('quickNotes').value
+        )"
+      >
+        SAVE NOTES
+      </button>
+
+    </div>
+
+  `;
+}}
   
 async function loadProfileList(){
   const c=document.getElementById("content");
@@ -582,6 +680,62 @@ function cancelProfileEdit(){
 
   if(display)display.style.display="block";
   if(editor)editor.style.display="none";
+}async function saveQuickProfileField(field,value){
+
+  const punkId=selectedProfilePunk;
+  if(!punkId)return;
+
+  try{
+
+    const existing=db.profile||{
+      punk_id:Number(punkId),
+      handle:"",
+      about_me:"",
+      image_url:"",
+      data:{}
+    };
+
+    let newValue=value;
+
+    if(field==="hp" || field==="armor"){
+      newValue=value===""?null:Number(value);
+    }
+
+    const data={
+      ...(existing.data||{}),
+      [field]:newValue
+    };
+
+    const payload={
+      punk_id:Number(punkId),
+      handle:existing.handle||"",
+      about_me:existing.about_me||"",
+      image_url:existing.image_url||"",
+      data,
+      template_id:existing.template_id||null
+    };
+
+    const result=await api(
+      '/punk_profiles?on_conflict=punk_id',
+      {
+        method:"POST",
+        headers:{
+          Prefer:"resolution=merge-duplicates,return=representation"
+        },
+        body:JSON.stringify(payload)
+      }
+    );
+
+    db.profile=result?.[0]||{
+      ...existing,
+      data
+    };
+
+  }catch(e){
+
+    alert("Could not save profile: "+e.message);
+
+  }
 }
   async function saveProfile(){
 
@@ -591,10 +745,7 @@ function cancelProfileEdit(){
 const handle=val("profileHandle");
 const playerName=val("profilePlayerName");
 const pronouns=val("profilePronouns");
-const hp=val("profileHP");
-const armor=val("profileArmor");
 const about_me=val("profileAbout");
-const notes=val("profileNotes");
 const file=document.getElementById("profileImage")?.files?.[0];
 
   let image_url=db.profile?.image_url||"";
@@ -639,12 +790,9 @@ const file=document.getElementById("profileImage")?.files?.[0];
   about_me,
   image_url,
   data:{
-    ...(existing?.data||{}),
+  ...(existing?.data||{}),
   player_name:playerName,
-  pronouns,
-  hp:hp===""?null:Number(hp),
-  armor:armor===""?null:Number(armor),
-  notes
+  pronouns
 },
   template_id:existing?.template_id||null
 };
@@ -670,95 +818,7 @@ const file=document.getElementById("profileImage")?.files?.[0];
 }
 
 
-async function loadProfileSheet(punkId){
-
-  const target=document.getElementById("profileSheet");
-  if(!target)return;
-
-  try{
-
-    const rows=await api(
-      '/punk_profiles?select=*&punk_id=eq.'+
-      encodeURIComponent(punkId)+
-      '&limit=1'
-    );
-
-    db.profile=rows&&rows.length?rows[0]:null;
-
-    let template=null;
-
-    if(db.profile?.template_id){
-
-      const t=await api(
-        '/profile_templates?select=*&id=eq.'+
-        encodeURIComponent(db.profile.template_id)+
-        '&limit=1'
-      );
-
-      template=t&&t.length?t[0]:null;
-
-    }
-
-    if(!template){
-
-      const t=await api(
-        '/profile_templates?select=*&name=eq.Standard%20Character&limit=1'
-      );
-
-      template=t&&t.length?t[0]:null;
-    }
-
-    db.profileTemplate=template;
-
-    if(!template){
-      target.innerHTML="";
-      return;
-    }
-
-    const config=template.config||{};
-    const sections=config.sections||[];
-    const data=db.profile?.data||{};
-
-    target.innerHTML=sections.map(s=>`
-
-      <div class="sectionTitle">
-        ${esc(s.title||"SECTION")}
-      </div>
-
-      <div class="grid">
-
-        ${(s.fields||[]).map(f=>{
-
-          const value=data[f.id]??"";
-
-          return `
-            <article class="card">
-
-              <span class="label">
-                ${esc(f.label||f.id)}
-              </span>
-
-              <h3>
-                ${esc(value)}
-              </h3>
-
-            </article>
-          `;
-
-        }).join("")}
-
-      </div>
-
-    `).join("");
-
-  }catch(e){
-
-    console.error("PROFILE SHEET ERROR:",e);
-
-    target.innerHTML=
-      '<div class="empty">PROFILE SHEET COULD NOT BE LOADED.</div>';
-  }
-}async function ask(e){e.preventDefault();const q=val("question"),player=val("askPlayer");if(!player)return alert("Please select your character.");if(!q)return alert("Please enter a question.");try{await api('/ask_ai',{method:'POST',body:JSON.stringify({player_username:player,question:q,answer:""})});await loadDB()}catch(err){alert("Could not send question: "+err.message)}return false}
+async function ask(e){e.preventDefault();const q=val("question"),player=val("askPlayer");if(!player)return alert("Please select your character.");if(!q)return alert("Please enter a question.");try{await api('/ask_ai',{method:'POST',body:JSON.stringify({player_username:player,question:q,answer:""})});await loadDB()}catch(err){alert("Could not send question: "+err.message)}return false}
 function openLogin(){document.getElementById("login").style.display="flex";document.getElementById("pass").value="";document.getElementById("loginErr").textContent="";setTimeout(()=>document.getElementById("pass").focus(),30)}function closeLogin(){document.getElementById("login").style.display="none"}
 function checkLogin(){if(document.getElementById("pass").value==="CY_BORG"){dmPassword=document.getElementById("pass").value;closeLogin();document.getElementById("publicPage").style.display="none";document.getElementById("dmPage").style.display="block";admin()}else document.getElementById("loginErr").textContent="ACCESS DENIED."}function exitDM(){document.getElementById("dmPage").style.display="none";document.getElementById("publicPage").style.display="block";render()}
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
