@@ -199,7 +199,24 @@ let activeCat="Weapons",
     path
   );
 }
-async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
+async function api(path,opts={}){
+  const r=await fetch(
+    API+path,
+    {
+      cache:"no-store",
+      ...opts,
+      headers:{
+        ...HEAD,
+        ...(opts.headers||{})
+      }
+    }
+  );
+
+  if(!r.ok)
+    throw new Error(await r.text());
+
+  return r.status===204?null:r.json();
+}
 async function load(){
   try{
     const [l,p]=await Promise.all([
@@ -222,7 +239,7 @@ listings=l.map(x=>({
 initUI();
 
 if(activeCat==="SELL"){
-  await loadSellInventory();
+  await loadSellInventory(true);
 }
   }catch(e){
     console.error(e);
@@ -264,7 +281,7 @@ function setCat(c){
   }
 }
 function currentPunk(){return punks.find(p=>String(p.id)===String($("punkSelect").value))||punks[0]}
-  async function loadSellInventory(){
+async function loadSellInventory(silent=false){
 
   const p=currentPunk();
 
@@ -274,8 +291,10 @@ function currentPunk(){return punks.find(p=>String(p.id)===String($("punkSelect"
     return;
   }
 
+ if(!silent){
   $("listingGrid").innerHTML=
     `<div class="empty">ACCESSING ${esc(p.name)} INVENTORY...</div>`;
+}
 
   try{
 
