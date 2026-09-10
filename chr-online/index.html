@@ -938,7 +938,7 @@ function cancelProfileEdit(){
   const punkId=selectedProfilePunk;
 
   if(!punkId){
-    alert("No character profile selected.");
+    alert("NO CHARACTER SELECTED.");
     return;
   }
 
@@ -946,19 +946,17 @@ function cancelProfileEdit(){
 
   const quantity=Math.max(
     1,
-    Math.floor(
-      Number(val("manualInventoryQuantity")||1)
-    )
+    Math.floor(Number(val("manualInventoryQuantity")||1))
   );
 
   if(!name){
-    alert("Enter an item name.");
+    alert("ENTER AN ITEM NAME.");
     return;
   }
 
   try{
 
-    await api(
+    const result=await api(
       '/rpc/add_manual_inventory_item',
       {
         method:"POST",
@@ -970,25 +968,27 @@ function cancelProfileEdit(){
       }
     );
 
+    console.log("ADD INVENTORY RESULT:",result);
+
     await loadInventory(punkId);
+
+    console.log("INVENTORY AFTER ADD:",db.inventory);
 
     render();
 
+    alert("ITEM ADDED.");
+
   }catch(e){
 
-    console.error(
-      "MANUAL INVENTORY ADD ERROR:",
-      e
-    );
+    console.error("ADD INVENTORY FAILED:",e);
 
     alert(
-      "Could not add inventory item:\n\n"+
+      "ADD INVENTORY FAILED:\n\n"+
       e.message
     );
 
   }
 }
-
 
 async function setInventoryQuantity(inventoryId,quantity){
 
