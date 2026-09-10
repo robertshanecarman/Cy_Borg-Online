@@ -2114,14 +2114,26 @@ async function saveDMInventoryItem(
 
   try{
 
-    const quantity=Math.max(
-      0,
-      Number(
-        val("dmInvQty_"+inventoryId)||0
-      )
-    );
+  const quantity=Math.max(
+  0,
+  Number(
+    val("dmInvQty_"+inventoryId)||0
+  )
+);
 
-    const mechanics=
+await api(
+  '/rpc/set_inventory_quantity',
+  {
+    method:"POST",
+    body:JSON.stringify({
+      p_punk_id:Number(punkId),
+      p_inventory_id:Number(inventoryId),
+      p_quantity:quantity
+    })
+  }
+);
+
+const mechanics=
   val("dmInvMechanics_"+inventoryId);
 
 await api(
