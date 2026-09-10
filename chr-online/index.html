@@ -215,7 +215,14 @@ function render(){
 const image=profile.image_url||"";
 const handle=profile.handle||punk.name;
 const about=profile.about_me||"";
-const playerName=profile.data?.player_name||"";
+
+const profileData=profile.data||{};
+const playerName=profileData.player_name||"";
+const alias=profileData.alias||"";
+const pronouns=profileData.pronouns||"";
+const hp=profileData.hp??"";
+const armor=profileData.armor??"";
+const notes=profileData.notes||"";
 
     c.innerHTML=`
       <div class="sectionTitle">MY PROFILE</div>
@@ -286,8 +293,29 @@ const playerName=profile.data?.player_name||"";
 </div>
 
 <div class="field">
-  <label>PLAYER NAME</label>
-  <input id="profilePlayerName" value="${esc(playerName)}" placeholder="Your name">
+  <label>ALIAS</label>
+  <input id="profileAlias" value="${esc(alias)}" placeholder="Character alias">
+</div>
+
+<div class="field">
+  <label>PRONOUNS</label>
+  <input id="profilePronouns" value="${esc(pronouns)}" placeholder="e.g. they/them">
+</div>
+
+<div class="field">
+  <label>HP</label>
+  <input id="profileHP" type="number" value="${esc(hp)}" placeholder="0">
+</div>
+
+<div class="field">
+  <label>ARMOR</label>
+  <input id="profileArmor" type="number" value="${esc(armor)}" placeholder="0">
+</div>
+
+<div class="field">
+  <label>NOTES</label>
+  <textarea id="profileNotes"
+    placeholder="Character notes...">${esc(notes)}</textarea>
 </div>
 
 <div class="field">
@@ -419,7 +447,12 @@ async function saveProfile(){
 
 const handle=val("profileHandle");
 const playerName=val("profilePlayerName");
+const alias=val("profileAlias");
+const pronouns=val("profilePronouns");
+const hp=val("profileHP");
+const armor=val("profileArmor");
 const about_me=val("profileAbout");
+const notes=val("profileNotes");
 const file=document.getElementById("profileImage")?.files?.[0];
 
   let image_url=db.profile?.image_url||"";
@@ -465,8 +498,13 @@ const file=document.getElementById("profileImage")?.files?.[0];
   image_url,
   data:{
     ...(existing?.data||{}),
-    player_name:playerName
-  },
+  player_name:playerName,
+  alias,
+  pronouns,
+  hp:hp===""?null:Number(hp),
+  armor:armor===""?null:Number(armor),
+  notes
+},
   template_id:existing?.template_id||null
 };
 
@@ -691,14 +729,12 @@ function admin(){
 }
 
 nav();
-loadDB();
 
-setInterval(()=>{
-  if(document.getElementById("dmPage").style.display==="block") return;
-
-  const a=document.activeElement;
-  if(a && (a.id==="question" || a.id==="askPlayer")) return;
-
-  loadDB();
-},5000);
+if(section==="My Profile"){
+  loadProfileList();
+}else{
+  render();
+}
+setInterval(loadDB,5000);
+  
 </script></body></html>
