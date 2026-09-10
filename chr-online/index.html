@@ -196,7 +196,27 @@ let db={
 };
 let dmPassword="";
 let selectedProfilePunk=localStorage.getItem("chrProfilePunk")||"";
-async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());const text=await r.text();return text?JSON.parse(text):null}
+async function api(path,opts={}){
+
+  const r=await fetch(
+    API+path,
+    {
+      cache:"no-store",
+      ...opts,
+      headers:{
+        ...HEAD,
+        ...(opts.headers||{})
+      }
+    }
+  );
+
+  if(!r.ok)
+    throw new Error(await r.text());
+
+  const text=await r.text();
+
+  return text?JSON.parse(text):null;
+}
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
@@ -916,17 +936,25 @@ function cancelProfileEdit(){
   async function addManualInventoryItem(){
 
   const punkId=selectedProfilePunk;
-  if(!punkId)return;
+
+  if(!punkId){
+    alert("No character profile selected.");
+    return;
+  }
 
   const name=val("manualInventoryName");
 
   const quantity=Math.max(
     1,
-    Number(val("manualInventoryQuantity")||1)
+    Math.floor(
+      Number(val("manualInventoryQuantity")||1)
+    )
   );
 
-  if(!name)
-    return alert("Enter an item name.");
+  if(!name){
+    alert("Enter an item name.");
+    return;
+  }
 
   try{
 
@@ -948,8 +976,13 @@ function cancelProfileEdit(){
 
   }catch(e){
 
+    console.error(
+      "MANUAL INVENTORY ADD ERROR:",
+      e
+    );
+
     alert(
-      "Could not add inventory item: "+
+      "Could not add inventory item:\n\n"+
       e.message
     );
 
