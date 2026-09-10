@@ -709,18 +709,33 @@ function render(){
   ${esc(item.name)}
 </h3>
 
-${
-  item.mechanics
-  ? `<div style="
-       color:var(--blue);
-       font-size:11px;
-       line-height:1.5;
-       margin-bottom:12px;
-     ">
-       ${esc(item.mechanics).replace(/\n/g,"<br>")}
-     </div>`
-  : ""
-}
+<div class="field" style="margin-bottom:12px">
+  <label>MECHANICS / RULES NOTES</label>
+
+  <textarea
+    id="invMechanics_${item.id}"
+    placeholder="Damage, bonuses, effects, reminders..."
+    style="
+      width:100%;
+      min-height:70px;
+      resize:vertical;
+      background:#fffdf4;
+      border:2px solid var(--ink);
+      padding:10px;
+      color:var(--blue);
+      font:11px 'IBM Plex Mono';
+      line-height:1.5;
+    "
+  >${esc(item.mechanics||"")}</textarea>
+
+  <button
+    class="small"
+    style="margin-top:6px"
+    onclick="saveInventoryMechanics(${item.id})"
+  >
+    SAVE MECHANICS
+  </button>
+</div>
 
 ${
   item.notes
@@ -1002,7 +1017,49 @@ function cancelProfileEdit(){
 
   }
 }
+async function saveInventoryMechanics(inventoryId){
 
+  const punkId=selectedProfilePunk;
+
+  if(!punkId)return;
+
+  const mechanics=
+    document.getElementById(
+      "invMechanics_"+inventoryId
+    )?.value||"";
+
+  try{
+
+    await api(
+      '/rpc/set_inventory_mechanics',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_mechanics:mechanics
+        })
+      }
+    );
+
+    const item=
+      db.inventory.find(
+        x=>x.id==inventoryId
+      );
+
+    if(item){
+      item.mechanics=mechanics;
+    }
+
+  }catch(e){
+
+    alert(
+      "Could not save mechanics: "+
+      e.message
+    );
+
+  }
+}
 async function setInventoryQuantity(inventoryId,quantity){
 
   const punkId=selectedProfilePunk;
@@ -1616,20 +1673,31 @@ async function refreshProfileConfig(){
             </strong>
 
             <div class="fields"
-              style="margin-top:8px">
+  style="margin-top:8px">
 
-              <div class="field">
+  <div class="field">
 
-                <label>Quantity</label>
+    <label>Quantity</label>
 
-                <input
-                  id="dmInvQty_${item.id}"
-                  type="number"
-                  min="0"
-                  value="${esc(item.quantity)}"
-                >
+    <input
+      id="dmInvQty_${item.id}"
+      type="number"
+      min="0"
+      value="${esc(item.quantity)}"
+    >
 
-              </div>
+  </div>
+
+  <div class="field full">
+
+    <label>Mechanics / Rules Notes</label>
+
+    <textarea
+      id="dmInvMechanics_${item.id}"
+      placeholder="Damage, bonuses, effects, reminders..."
+    >${esc(item.mechanics||"")}</textarea>
+
+  </div>
 
 
               ${
@@ -1912,17 +1980,20 @@ async function saveDMInventoryItem(
       )
     );
 
-    await api(
-      '/rpc/set_inventory_quantity',
-      {
-        method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_inventory_id:Number(inventoryId),
-          p_quantity:quantity
-        })
-      }
-    );
+    const mechanics=
+  val("dmInvMechanics_"+inventoryId);
+
+await api(
+  '/rpc/set_inventory_mechanics',
+  {
+    method:"POST",
+    body:JSON.stringify({
+      p_punk_id:Number(punkId),
+      p_inventory_id:Number(inventoryId),
+      p_mechanics:mechanics
+    })
+  }
+);
 
     if(isManual && quantity>0){
 
