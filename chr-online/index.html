@@ -1681,16 +1681,28 @@ async function refreshProfileConfig(){
 
   </div>
 
-  <div class="field full">
+ <div class="field full">
 
-    <label>Mechanics / Rules Notes</label>
+  <label>Mechanics / Rules Notes</label>
 
-    <textarea
-      id="dmInvMechanics_${item.id}"
-      placeholder="Damage, bonuses, effects, reminders..."
-    >${esc(item.mechanics||"")}</textarea>
+  <textarea
+    id="dmInvMechanics_${item.id}"
+    placeholder="Damage, bonuses, effects, reminders..."
+    onblur="saveDMInventoryMechanics(${Number(punkId)},${item.id})"
+    style="
+      min-height:42px;
+      resize:vertical;
+      background:transparent;
+      border:0;
+      outline:0;
+      padding:4px 0;
+      color:var(--blue);
+      font:600 11px 'IBM Plex Mono';
+      line-height:1.45;
+    "
+  >${esc(item.mechanics||"")}</textarea>
 
-  </div>
+</div>
 
 
               ${
@@ -1951,6 +1963,23 @@ async function saveDMProfileValues(punkId){
 
     alert(
       "Could not add inventory item:\n\n"+
+      e.message
+    );
+
+  }
+}
+
+
+async function saveDMInventoryMechanics(
+  punkId,
+  inventoryId
+){
+
+
+  }catch(e){
+
+    alert(
+      "Could not save mechanics: "+
       e.message
     );
 
