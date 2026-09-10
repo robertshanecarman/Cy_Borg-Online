@@ -1346,8 +1346,7 @@ function checkLogin(){
 
   if(document.getElementById("pass").value==="CY_BORG"){
 
-    dmPassword=
-      document.getElementById("pass").value;
+    dmPassword=document.getElementById("pass").value;
 
     closeLogin();
 
@@ -1356,9 +1355,21 @@ function checkLogin(){
 
     admin();
 
-    setTimeout(()=>{
-      loadDMProfileValues();
-    },0);
+    const punkSelect=document.getElementById("dmProfilePunk");
+
+    // Open the same Punk the player was just viewing, when possible.
+    if(
+      punkSelect &&
+      selectedProfilePunk &&
+      [...punkSelect.options].some(
+        o=>String(o.value)===String(selectedProfilePunk)
+      )
+    ){
+      punkSelect.value=selectedProfilePunk;
+    }
+
+    // Force a fresh database read of this Punk's profile + inventory.
+    loadDMProfileValues();
 
   }else{
 
@@ -1366,6 +1377,7 @@ function checkLogin(){
       "ACCESS DENIED.";
 
   }
+}
 }
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 async function saveNews(){
