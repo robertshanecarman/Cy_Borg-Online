@@ -1953,12 +1953,7 @@ async function removeDMInventoryItem(
 }
 
 nav();
-
-if(section==="My Profile"){
-  loadProfileList();
-}else{
-  render();
-}
+loadDB();
 setInterval(loadDB,5000);
   
 </script></body></html>
