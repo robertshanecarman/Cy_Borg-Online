@@ -709,34 +709,27 @@ function render(){
   ${esc(item.name)}
 </h3>
 
-<div class="field" style="margin-bottom:12px">
-  <label>MECHANICS / RULES NOTES</label>
+<<div style="margin-bottom:12px">
 
   <textarea
     id="invMechanics_${item.id}"
-    placeholder="Damage, bonuses, effects, reminders..."
+    placeholder="Mechanics / rules notes..."
+    onblur="saveInventoryMechanics(${item.id})"
     style="
       width:100%;
-      min-height:70px;
+      min-height:38px;
       resize:vertical;
-      background:#fffdf4;
-      border:2px solid var(--ink);
-      padding:10px;
+      background:transparent;
+      border:0;
+      outline:0;
+      padding:0;
       color:var(--blue);
-      font:11px 'IBM Plex Mono';
-      line-height:1.5;
+      font:600 11px 'IBM Plex Mono';
+      line-height:1.45;
     "
   >${esc(item.mechanics||"")}</textarea>
 
-  <button
-    class="small"
-    style="margin-top:6px"
-    onclick="saveInventoryMechanics(${item.id})"
-  >
-    SAVE MECHANICS
-  </button>
 </div>
-
 ${
   item.notes
   ? `<div class="story" style="margin-bottom:12px">
