@@ -1370,13 +1370,23 @@ function checkLogin(){
     // Force a fresh database read of this Punk's profile + inventory.
     loadDMProfileValues();
 
-  }else{
+    }else{
 
     document.getElementById("loginErr").textContent=
       "ACCESS DENIED.";
 
   }
 }
+
+
+function exitDM(){
+
+  document.getElementById("dmPage").style.display="none";
+  document.getElementById("publicPage").style.display="block";
+
+  render();
+}
+
 
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 async function saveNews(){
