@@ -235,8 +235,28 @@ db.statCategories=sc||[];
 db.characters=p.map(x=>x.name);
 nav();
 
-if(section!=="My Profile"){
+if(section==="My Profile"){
+
+  if(selectedProfilePunk && db.profile){
+
+    loadInventory(selectedProfilePunk).then(()=>{
+
+      const inventoryArea=
+        document.getElementById("profileInventory");
+
+      if(inventoryArea){
+        refreshProfileInventory();
+      }
+
+    });
+
+  }
+
+}else{
+
   render();
+
+}
 }
 
 admin();
@@ -844,7 +864,131 @@ ${
 
   `;
 }}
-  
+  function refreshProfileInventory(){
+
+  const target=
+    document.getElementById("profileInventory");
+
+  if(!target)return;
+
+  target.innerHTML=`
+
+    ${
+      db.inventory.length
+
+      ? `<div class="grid">
+
+          ${db.inventory.map(item=>`
+
+            <article class="card">
+
+              <span class="label">
+                ITEM
+              </span>
+
+              <h3>
+                ${esc(item.name)}
+              </h3>
+
+              <div style="margin-bottom:12px">
+
+                <textarea
+                  id="invMechanics_${item.id}"
+                  placeholder="Mechanics / rules notes..."
+                  onblur="saveInventoryMechanics(${item.id})"
+                  style="
+                    width:100%;
+                    min-height:38px;
+                    resize:vertical;
+                    background:transparent;
+                    border:0;
+                    outline:0;
+                    padding:0;
+                    color:var(--blue);
+                    font:600 11px 'IBM Plex Mono';
+                    line-height:1.45;
+                  "
+                >${esc(item.mechanics||"")}</textarea>
+
+              </div>
+
+              ${
+                item.notes
+                ? `<div class="story" style="margin-bottom:12px">
+                     ${esc(item.notes).replace(/\n/g,"<br>")}
+                   </div>`
+                : ""
+              }
+
+              <div class="field">
+                <label>Quantity</label>
+
+                <input
+                  type="number"
+                  min="0"
+                  value="${esc(item.quantity)}"
+                  onchange="setInventoryQuantity(
+                    ${item.id},
+                    this.value
+                  )"
+                >
+              </div>
+
+              <button
+                class="small delete"
+                style="margin-top:6px"
+                onclick="removePlayerInventoryItem(${item.id})"
+              >
+                REMOVE ITEM
+              </button>
+
+            </article>
+
+          `).join("")}
+
+        </div>`
+
+      : `<div class="empty">
+           INVENTORY EMPTY.
+         </div>`
+    }
+
+
+    <div class="card" style="margin-top:18px">
+
+      <span class="label">
+        ADD ITEM
+      </span>
+
+      <div class="field" style="margin-top:12px">
+        <label>Item Name</label>
+        <input
+          id="manualInventoryName"
+          placeholder="Found item, weapon, key, gear..."
+        >
+      </div>
+
+      <div class="field">
+        <label>Quantity</label>
+        <input
+          id="manualInventoryQuantity"
+          type="number"
+          min="1"
+          value="1"
+        >
+      </div>
+
+      <button
+        class="save"
+        onclick="addManualInventoryItem()"
+      >
+        ADD TO INVENTORY
+      </button>
+
+    </div>
+
+  `;
+}
 async function loadProfileList(){
   const c=document.getElementById("content");
   if(!c)return;
