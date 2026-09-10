@@ -224,22 +224,11 @@ function render(){
 
 ${x.mechanics?`
   <div style="
-    border:1px solid var(--cyan);
-    background:#0b1115;
-    padding:9px;
-    margin-bottom:10px;
     color:var(--cyan);
     font-size:11px;
     line-height:1.45;
+    margin-bottom:10px;
   ">
-    <div style="
-      color:var(--pink);
-      font-size:9px;
-      margin-bottom:4px;
-    ">
-      GAME MECHANICS
-    </div>
-
     ${esc(x.mechanics).replace(/\n/g,"<br>")}
   </div>
 `:""}
