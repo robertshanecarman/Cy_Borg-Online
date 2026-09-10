@@ -43,13 +43,33 @@ function pasteboardUrl(url){
   return url;
 }
 const val=id=>(document.getElementById(id)?.value||"").trim(); const clr=id=>{const e=document.getElementById(id);if(e)e.value=""};
-const sections=["News Flash!","Rumor Mill","Odd Jobs","For Hire","ASK AI"];let section=sections[0];
-let db={news:{headline:"",story:"",img:""},rumors:[],jobs:[],hires:[],asks:[],characters:[]}; let dmPassword="";
+const sections=["News Flash!","My Profile","Rumor Mill","Odd Jobs","For Hire","ASK AI"];let section=sections[0];
+let db={
+  news:{headline:"",story:"",img:""},
+  rumors:[],
+  jobs:[],
+  hires:[],
+  asks:[],
+  characters:[],
+  punks:[],
+  profile:null,
+  profileTemplate:null
+};
+let dmPassword="";
+let selectedProfilePunk=localStorage.getItem("chrProfilePunk")||"";
 async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...HEAD,...(opts.headers||{})}});if(!r.ok)throw new Error(await r.text());const text=await r.text();return text?JSON.parse(text):null}
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
-try{const [n,r,j,h,a,p]=await Promise.all([api('/news?select=*&order=id.desc&limit=1'),api('/rumors?select=*&order=created_at.desc'),api('/odd_jobs?select=*&order=created_at.desc'),api('/for_hire?select=*&order=created_at.desc'),api('/ask_ai?select=*&order=created_at.asc'),api('/punks?select=id,name&order=id.asc')]);db.news=n[0]?{headline:n[0].headline||"",story:n[0].story||"",img:n[0].image_url||""}:{headline:"",story:"",img:""};db.rumors=r.map(x=>({id:x.id,user:x.username,title:x.title,text:x.body,img:x.image_url||""}));db.jobs=j.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,pay:x.pay||""}));db.hires=h.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,rate:x.rate||"",avail:x.availability||""}));db.asks=a.map(x=>({id:x.id,player:x.player_username,question:x.question,answer:x.answer||"",createdAt:x.created_at}));db.characters=p.map(x=>x.name);
+try{const [n,r,j,h,a,p]=await Promise.all([
+  api('/news?select=*&order=id.desc&limit=1'),
+  api('/rumors?select=*&order=created_at.desc'),
+  api('/odd_jobs?select=*&order=created_at.desc'),
+  api('/for_hire?select=*&order=created_at.desc'),
+  api('/ask_ai?select=*&order=created_at.asc'),
+  api('/punks?select=id,name,creds&order=id.asc')
+]);db.news=n[0]?{headline:n[0].headline||"",story:n[0].story||"",img:n[0].image_url||""}:{headline:"",story:"",img:""};db.rumors=r.map(x=>({id:x.id,user:x.username,title:x.title,text:x.body,img:x.image_url||""}));db.jobs=j.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,pay:x.pay||""}));db.hires=h.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,rate:x.rate||"",avail:x.availability||""}));db.asks=a.map(x=>({id:x.id,player:x.player_username,question:x.question,answer:x.answer||"",createdAt:x.created_at}));db.punks=p;
+db.characters=p.map(x=>x.name);
 nav();
 render();
 admin();
@@ -57,7 +77,23 @@ const nq=document.getElementById("question"),np=document.getElementById("askPlay
 if(nq && draftQuestion)nq.value=draftQuestion;
 if(np && draftPlayer && [...np.options].some(o=>o.value===draftPlayer))np.value=draftPlayer;
 }catch(e){console.error(e);/* Keep navigation and current page usable if a request fails. */}}
-function nav(){document.getElementById("nav").innerHTML=sections.map(s=>`<button class="${s===section?"active":""}" onclick="show('${s}')">${s}</button>`).join("")};function show(s){section=s;nav();render()}
+function nav(){document.getElementById("nav").innerHTML=sections.map(s=>`<button class="${s===section?"active":""}" onclick="show('${s}')">${s}</button>`).join("")};function show(s){
+  section=s;
+  nav();
+
+  if(section==="My Profile"){
+
+    if(!selectedProfilePunk && db.punks.length){
+      selectedProfilePunk=String(db.punks[0].id);
+      localStorage.setItem("chrProfilePunk",selectedProfilePunk);
+    }
+
+    loadProfile(selectedProfilePunk);
+
+  }else{
+    render();
+  }
+}
 function render(){
   let c=document.getElementById("content");
 
@@ -163,9 +199,322 @@ function render(){
       )+
       '</div></div>';
   }
-}
+  if(section==="My Profile"){
+    const punk=db.punks.find(x=>String(x.id)===String(selectedProfilePunk))||db.punks[0];
+
+    if(!punk){
+      c.innerHTML=
+        '<div class="sectionTitle">MY PROFILE</div>'+
+        '<div class="empty">NO CHARACTERS FOUND.</div>';
+      return;
+    }
+
+    selectedProfilePunk=String(punk.id);
+    localStorage.setItem("chrProfilePunk",selectedProfilePunk);
+
+    const profile=db.profile||{
+      handle:"",
+      about_me:"",
+      image_url:"",
+      data:{}
+    };
+
+    const image=profile.image_url||"";
+    const handle=profile.handle||punk.name;
+    const about=profile.about_me||"";
+
+    c.innerHTML=`
+      <div class="sectionTitle">MY PROFILE</div>
+
+      <div style="
+        border:2px solid #111;
+        background:#f5f0e6;
+        padding:20px;
+        margin-bottom:20px;
+      ">
+
+        <div style="
+          display:flex;
+          gap:20px;
+          align-items:flex-start;
+          flex-wrap:wrap;
+        ">
+
+          <div style="width:180px">
+
+            <div style="
+              width:180px;
+              height:180px;
+              border:2px solid #111;
+              background:#ddd;
+              overflow:hidden;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-family:monospace;
+              font-size:12px;
+            ">
+              ${
+                image
+                ? `<img src="${esc(image)}"
+                    style="width:100%;height:100%;object-fit:cover">`
+                : "NO IMAGE"
+              }
+            </div>
+
+            <input
+              id="profileImage"
+              type="file"
+              accept="image/*"
+              style="width:100%;margin-top:8px"
+            >
+
+          </div>
+
+          <div style="flex:1;min-width:240px">
+
+            <div class="meta">CHARACTER PROFILE</div>
+
+            <h1 style="margin:4px 0;font-size:32px">
+              ${esc(punk.name)}
+            </h1>
+
+            <div style="
+              font-family:monospace;
+              margin-bottom:18px;
+            ">
+              @${esc(handle)}
+            </div>
+
+            <div class="field">
+              <label>HANDLE</label>
+              <input id="profileHandle" value="${esc(profile.handle||"")}">
+            </div>
+
+            <div class="field">
+              <label>ABOUT ME</label>
+              <textarea id="profileAbout"
+                placeholder="Tell the world who you are...">${esc(about)}</textarea>
+            </div>
+
+            <button class="save" onclick="saveProfile()">
+              SAVE PROFILE
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="grid">
+
+        <article class="card">
+          <span class="label">CONNECTED ACCOUNT</span>
+          <h3>${esc(punk.name)}</h3>
+          <div class="meta">CHR-ONLINE CHARACTER ID // ${esc(punk.id)}</div>
+        </article>
+
+        <article class="card">
+          <span class="label">CRED</span>
+          <h3>${esc(punk.creds ?? 0)}</h3>
+          <div class="meta">LINKED TO CAMPAIGN CRED BALANCE</div>
+        </article>
+
+      </div>
+
+      <div id="profileSheet"></div>
+    `;
+
+    loadProfileSheet(punk.id);
+  }}
   
-async function ask(e){e.preventDefault();const q=val("question"),player=val("askPlayer");if(!player)return alert("Please select your character.");if(!q)return alert("Please enter a question.");try{await api('/ask_ai',{method:'POST',body:JSON.stringify({player_username:player,question:q,answer:""})});await loadDB()}catch(err){alert("Could not send question: "+err.message)}return false}
+async function loadProfile(punkId){
+  selectedProfilePunk=String(punkId);
+  localStorage.setItem("chrProfilePunk",selectedProfilePunk);
+
+  try{
+    const rows=await api(
+      '/punk_profiles?select=*&punk_id=eq.'+
+      encodeURIComponent(punkId)+
+      '&limit=1'
+    );
+
+    db.profile=rows&&rows.length?rows[0]:null;
+
+  }catch(e){
+    console.error("PROFILE LOAD ERROR:",e);
+    db.profile=null;
+  }
+
+  render();
+}
+
+
+async function saveProfile(){
+
+  const punkId=selectedProfilePunk;
+  if(!punkId)return;
+
+  const handle=val("profileHandle");
+  const about_me=val("profileAbout");
+  const file=document.getElementById("profileImage")?.files?.[0];
+
+  let image_url=db.profile?.image_url||"";
+
+  try{
+
+    if(file){
+
+      const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+      const path="punk-"+punkId+"-"+Date.now()+"."+ext;
+
+      const upload=await fetch(
+        SUPABASE_URL+
+        "/storage/v1/object/profile-images/"+
+        encodeURIComponent(path),
+        {
+          method:"POST",
+          headers:{
+            apikey:SUPABASE_KEY,
+            Authorization:"Bearer "+SUPABASE_KEY,
+            "Content-Type":file.type||"image/jpeg",
+            "x-upsert":"true"
+          },
+          body:file
+        }
+      );
+
+      if(!upload.ok)
+        throw new Error(await upload.text());
+
+      image_url=
+        SUPABASE_URL+
+        "/storage/v1/object/public/profile-images/"+
+        path;
+    }
+
+    const existing=db.profile;
+
+    const payload={
+      punk_id:Number(punkId),
+      handle,
+      about_me,
+      image_url,
+      data:existing?.data||{},
+      template_id:existing?.template_id||null
+    };
+
+    await api(
+      '/punk_profiles?on_conflict=punk_id',
+      {
+        method:"POST",
+        headers:{
+          Prefer:"resolution=merge-duplicates,return=representation"
+        },
+        body:JSON.stringify(payload)
+      }
+    );
+
+    await loadProfile(punkId);
+
+    alert("PROFILE SAVED.");
+
+  }catch(e){
+    alert("Could not save profile: "+e.message);
+  }
+}
+
+
+async function loadProfileSheet(punkId){
+
+  const target=document.getElementById("profileSheet");
+  if(!target)return;
+
+  try{
+
+    const rows=await api(
+      '/punk_profiles?select=*&punk_id=eq.'+
+      encodeURIComponent(punkId)+
+      '&limit=1'
+    );
+
+    db.profile=rows&&rows.length?rows[0]:null;
+
+    let template=null;
+
+    if(db.profile?.template_id){
+
+      const t=await api(
+        '/profile_templates?select=*&id=eq.'+
+        encodeURIComponent(db.profile.template_id)+
+        '&limit=1'
+      );
+
+      template=t&&t.length?t[0]:null;
+
+    }
+
+    if(!template){
+
+      const t=await api(
+        '/profile_templates?select=*&name=eq.Standard%20Character&limit=1'
+      );
+
+      template=t&&t.length?t[0]:null;
+    }
+
+    db.profileTemplate=template;
+
+    if(!template){
+      target.innerHTML="";
+      return;
+    }
+
+    const config=template.config||{};
+    const sections=config.sections||[];
+    const data=db.profile?.data||{};
+
+    target.innerHTML=sections.map(s=>`
+
+      <div class="sectionTitle">
+        ${esc(s.title||"SECTION")}
+      </div>
+
+      <div class="grid">
+
+        ${(s.fields||[]).map(f=>{
+
+          const value=data[f.id]??"";
+
+          return `
+            <article class="card">
+
+              <span class="label">
+                ${esc(f.label||f.id)}
+              </span>
+
+              <h3>
+                ${esc(value)}
+              </h3>
+
+            </article>
+          `;
+
+        }).join("")}
+
+      </div>
+
+    `).join("");
+
+  }catch(e){
+
+    console.error("PROFILE SHEET ERROR:",e);
+
+    target.innerHTML=
+      '<div class="empty">PROFILE SHEET COULD NOT BE LOADED.</div>';
+  }
+}async function ask(e){e.preventDefault();const q=val("question"),player=val("askPlayer");if(!player)return alert("Please select your character.");if(!q)return alert("Please enter a question.");try{await api('/ask_ai',{method:'POST',body:JSON.stringify({player_username:player,question:q,answer:""})});await loadDB()}catch(err){alert("Could not send question: "+err.message)}return false}
 function openLogin(){document.getElementById("login").style.display="flex";document.getElementById("pass").value="";document.getElementById("loginErr").textContent="";setTimeout(()=>document.getElementById("pass").focus(),30)}function closeLogin(){document.getElementById("login").style.display="none"}
 function checkLogin(){if(document.getElementById("pass").value==="CY_BORG"){dmPassword=document.getElementById("pass").value;closeLogin();document.getElementById("publicPage").style.display="none";document.getElementById("dmPage").style.display="block";admin()}else document.getElementById("loginErr").textContent="ACCESS DENIED."}function exitDM(){document.getElementById("dmPage").style.display="none";document.getElementById("publicPage").style.display="block";render()}
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
