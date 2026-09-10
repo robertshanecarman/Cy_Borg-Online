@@ -212,9 +212,10 @@ function render(){
       data:{}
     };
 
-    const image=profile.image_url||"";
-    const handle=profile.handle||punk.name;
-    const about=profile.about_me||"";
+const image=profile.image_url||"";
+const handle=profile.handle||punk.name;
+const about=profile.about_me||"";
+const playerName=profile.data?.player_name||"";
 
     c.innerHTML=`
       <div class="sectionTitle">MY PROFILE</div>
@@ -279,16 +280,21 @@ function render(){
               @${esc(handle)}
             </div>
 
-            <div class="field">
-              <label>HANDLE</label>
-              <input id="profileHandle" value="${esc(profile.handle||"")}">
-            </div>
+<div class="field">
+  <label>HANDLE</label>
+  <input id="profileHandle" value="${esc(profile.handle||"")}">
+</div>
 
-            <div class="field">
-              <label>ABOUT ME</label>
-              <textarea id="profileAbout"
-                placeholder="Tell the world who you are...">${esc(about)}</textarea>
-            </div>
+<div class="field">
+  <label>PLAYER NAME</label>
+  <input id="profilePlayerName" value="${esc(playerName)}" placeholder="Your name">
+</div>
+
+<div class="field">
+  <label>ABOUT ME</label>
+  <textarea id="profileAbout"
+    placeholder="Tell the world who you are...">${esc(about)}</textarea>
+</div>
 
             <button class="save" onclick="saveProfile()">
               SAVE PROFILE
@@ -348,10 +354,10 @@ async function loadProfileList(){
       '<div class="banner">SELECT YOUR CHARACTER PROFILE.</div>'+
       '<div class="profileList">'+
       db.punks.map(p=>{
-        const profile=db.profiles.find(x=>String(x.punk_id)===String(p.id))||{};
-        const image=profile.image_url||"";
-        const handle=profile.handle||p.name;
-        const player=profile.player_name||"UNASSIGNED";
+       const profile=db.profiles.find(x=>String(x.punk_id)===String(p.id))||{};
+const image=profile.image_url||"";
+const handle=profile.handle||p.name;
+const player=profile.data?.player_name||"UNASSIGNED";;
 
         return `
           <div class="profileRow" onclick="openProfile(${p.id})">
@@ -411,9 +417,10 @@ async function saveProfile(){
   const punkId=selectedProfilePunk;
   if(!punkId)return;
 
-  const handle=val("profileHandle");
-  const about_me=val("profileAbout");
-  const file=document.getElementById("profileImage")?.files?.[0];
+const handle=val("profileHandle");
+const playerName=val("profilePlayerName");
+const about_me=val("profileAbout");
+const file=document.getElementById("profileImage")?.files?.[0];
 
   let image_url=db.profile?.image_url||"";
 
@@ -452,13 +459,16 @@ async function saveProfile(){
     const existing=db.profile;
 
     const payload={
-      punk_id:Number(punkId),
-      handle,
-      about_me,
-      image_url,
-      data:existing?.data||{},
-      template_id:existing?.template_id||null
-    };
+  punk_id:Number(punkId),
+  handle,
+  about_me,
+  image_url,
+  data:{
+    ...(existing?.data||{}),
+    player_name:playerName
+  },
+  template_id:existing?.template_id||null
+};
 
     await api(
       '/punk_profiles?on_conflict=punk_id',
