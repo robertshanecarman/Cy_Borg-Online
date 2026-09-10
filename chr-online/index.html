@@ -1,5 +1,41 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chr-Online</title>
-<style>
+<style> .profileStat{
+  border-top:1px solid var(--line);
+  padding:12px 0;
+}
+
+.profileStat span{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:5px;
+}
+
+.profileStat strong{
+  font:700 18px 'Space Grotesk';
+}
+
+.profileStats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+}
+
+.profileText{
+  font-size:12px;
+  line-height:1.6;
+}
+
+#profileEditor{
+  margin-top:10px;
+}
+
+@media(max-width:600px){
+  .profileStats{
+    grid-template-columns:1fr;
+  }
+}
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap');
 :root{--bg:#e9e4d5;--paper:#f8f5ea;--ink:#171717;--muted:#6c6a61;--orange:#f04d23;--blue:#214c7a;--green:#426b4b;--line:#bbb5a5}*{box-sizing:border-box}body{margin:0;background:linear-gradient(rgba(33,76,122,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(33,76,122,.035) 1px,transparent 1px),var(--bg);background-size:24px 24px;color:var(--ink);font-family:'IBM Plex Mono',monospace}header{background:var(--paper);border-bottom:4px solid var(--ink);padding:20px 25px}.top{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}.logo{font:700 48px 'Space Grotesk';letter-spacing:-3px}.logo span{color:var(--orange)}.tag{font-size:12px;color:var(--blue);font-weight:600}.dmBtn{background:var(--ink);color:#fff;border:0;padding:12px 15px;font:600 12px 'IBM Plex Mono';cursor:pointer;box-shadow:3px 3px 0 var(--orange)}main{max-width:1200px;margin:auto;padding:24px}.nav{display:flex;flex-wrap:wrap;border:2px solid var(--ink);background:var(--paper);margin-bottom:22px}.nav button{flex:1;min-width:130px;padding:14px 10px;background:transparent;border:0;border-right:1px solid var(--line);font:600 12px 'IBM Plex Mono';cursor:pointer}.nav button.active{background:var(--orange);color:#fff}.banner{background:var(--blue);color:#fff;padding:13px 16px;margin-bottom:22px;font-size:12px;box-shadow:5px 5px 0 var(--ink)}.sectionTitle{font:700 32px 'Space Grotesk';border-bottom:3px solid var(--ink);padding-bottom:8px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.card{background:var(--paper);border:2px solid var(--ink);padding:18px;box-shadow:4px 4px 0 var(--line)}.card h3{font:700 21px 'Space Grotesk';margin:4px 0 10px}.meta{font-size:10px;color:var(--muted);margin-bottom:12px}.story{font-size:13px;line-height:1.6}.label{display:inline-block;background:var(--orange);color:#fff;padding:4px 7px;font-size:9px;font-weight:bold}.photo{width:100%;max-height:220px;object-fit:cover;border:1px solid var(--ink);margin:10px 0}.empty{border:2px dashed var(--line);padding:50px;text-align:center;color:var(--muted)}.pay,.availability{color:var(--green);font-weight:bold}.askBox{max-width:850px}.askBox #aiChat{max-height:560px;overflow-y:auto;padding-right:5px}.askForm textarea,.field textarea,.field input{width:100%;background:#fffdf4;border:2px solid var(--ink);padding:11px;font:12px 'IBM Plex Mono'}.askForm textarea{min-height:110px;resize:vertical}.askForm button,.save{margin-top:10px;background:var(--orange);color:#fff;border:0;padding:11px 15px;font:600 12px 'IBM Plex Mono';cursor:pointer}.answer{margin-top:18px;border-left:6px solid var(--blue);padding:14px;background:#eef2f5}.answer b{color:var(--blue)}#dmPage{display:none}.dmHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.exit{background:var(--orange);color:white;border:0;padding:10px;cursor:pointer}.adminGrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.adminBox{background:var(--paper);border:2px solid var(--ink);padding:18px;box-shadow:5px 5px 0 var(--ink)}.adminBox h2{font:700 24px 'Space Grotesk';margin:0 0 15px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:10px}.field.full{grid-column:1/-1}.field label{display:block;font-size:9px;color:var(--muted);margin-bottom:5px;text-transform:uppercase}.field textarea{min-height:100px;resize:vertical}.adminList{max-height:390px;overflow:auto;border-top:2px solid var(--ink);margin-top:15px}.adminItem{padding:11px 0;border-bottom:1px solid var(--line);font-size:11px;display:flex;justify-content:space-between;gap:8px}.profileList{display:flex;flex-direction:column;gap:10px}.profileRow{display:flex;align-items:center;gap:15px;background:var(--paper);border:2px solid var(--ink);padding:10px 14px;cursor:pointer;box-shadow:4px 4px 0 var(--line);transition:transform .08s,box-shadow .08s}.profileRow:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--orange)}.profileThumb{width:62px;height:62px;object-fit:cover;border:2px solid var(--ink);background:#ddd;flex-shrink:0}.profileInfo{display:flex;flex-direction:column;gap:4px;min-width:0}.profileName{font:700 21px 'Space Grotesk'}.profileHandle{font-size:11px;color:var(--blue)}.profilePlayer{font-size:10px;color:var(--muted)}.small{background:var(--blue);color:white;border:0;padding:6px 8px;font:10px 'IBM Plex Mono';cursor:pointer}.delete{background:var(--ink)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10}.modalBox{background:var(--paper);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--orange);width:min(420px,90vw);padding:24px}.modalBox h2{font:700 28px 'Space Grotesk';margin-top:0}.modalBox input{width:100%;padding:12px;border:2px solid var(--ink);background:#fff;font:12px 'IBM Plex Mono';margin-bottom:8px}.error{color:var(--orange);height:18px;font-size:10px}.actions{display:flex;justify-content:flex-end;gap:8px}.cancel{padding:10px;border:2px solid var(--ink);background:transparent}footer{text-align:center;padding:35px;color:var(--muted);font-size:9px}@media(max-width:780px){.top,.dmHeader{align-items:flex-start;flex-direction:column}.logo{font-size:38px}.adminGrid{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}}
 </style></head><body>
@@ -71,7 +107,11 @@ try{const [n,r,j,h,a,p]=await Promise.all([
 ]);db.news=n[0]?{headline:n[0].headline||"",story:n[0].story||"",img:n[0].image_url||""}:{headline:"",story:"",img:""};db.rumors=r.map(x=>({id:x.id,user:x.username,title:x.title,text:x.body,img:x.image_url||""}));db.jobs=j.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,pay:x.pay||""}));db.hires=h.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,rate:x.rate||"",avail:x.availability||""}));db.asks=a.map(x=>({id:x.id,player:x.player_username,question:x.question,answer:x.answer||"",createdAt:x.created_at}));db.punks=p;
 db.characters=p.map(x=>x.name);
 nav();
-render();
+
+if(section!=="My Profile"){
+  render();
+}
+
 admin();
 const nq=document.getElementById("question"),np=document.getElementById("askPlayer");
 if(nq && draftQuestion)nq.value=draftQuestion;
@@ -218,7 +258,6 @@ const about=profile.about_me||"";
 
 const profileData=profile.data||{};
 const playerName=profileData.player_name||"";
-const alias=profileData.alias||"";
 const pronouns=profileData.pronouns||"";
 const hp=profileData.hp??"";
 const armor=profileData.armor??"";
@@ -263,12 +302,6 @@ const notes=profileData.notes||"";
               }
             </div>
 
-            <input
-              id="profileImage"
-              type="file"
-              accept="image/*"
-              style="width:100%;margin-top:8px"
-            >
 
           </div>
 
@@ -287,46 +320,141 @@ const notes=profileData.notes||"";
               @${esc(handle)}
             </div>
 
-<div class="field">
-  <label>HANDLE</label>
-  <input id="profileHandle" value="${esc(profile.handle||"")}">
+<div id="profileDisplay">
+
+  <div class="profileStat">
+    <span>PLAYER NAME</span>
+    <strong>${esc(playerName||"UNASSIGNED")}</strong>
+  </div>
+
+  <div class="profileStat">
+    <span>HANDLE</span>
+    <strong>@${esc(handle||"")}</strong>
+  </div>
+
+  <div class="profileStats">
+
+    <div class="profileStat">
+      <span>PRONOUNS</span>
+      <strong>${esc(pronouns||"—")}</strong>
+    </div>
+
+    <div class="profileStat">
+      <span>HP</span>
+      <strong>${hp===""||hp===null?"—":esc(hp)}</strong>
+    </div>
+
+    <div class="profileStat">
+      <span>ARMOR</span>
+      <strong>${armor===""||armor===null?"—":esc(armor)}</strong>
+    </div>
+
+  </div>
+
+  <div class="profileStat">
+    <span>ABOUT ME</span>
+    <div class="profileText">
+      ${about?esc(about).replace(/\n/g,"<br>"):"No information provided."}
+    </div>
+  </div>
+
+  <div class="profileStat">
+    <span>NOTES</span>
+    <div class="profileText">
+      ${notes?esc(notes).replace(/\n/g,"<br>"):"No notes."}
+    </div>
+  </div>
+
+  <button class="save" onclick="editProfile()">
+    EDIT PROFILE
+  </button>
+
 </div>
 
-<div class="field">
-  <label>ALIAS</label>
-  <input id="profileAlias" value="${esc(alias)}" placeholder="Character alias">
-</div>
+<div id="profileEditor" style="display:none">
 
-<div class="field">
-  <label>PRONOUNS</label>
-  <input id="profilePronouns" value="${esc(pronouns)}" placeholder="e.g. they/them">
-</div>
+  <div class="field">
+    <label>PLAYER NAME</label>
+    <input
+      id="profilePlayerName"
+      value="${esc(playerName)}"
+      placeholder="Your name">
+  </div>
 
-<div class="field">
-  <label>HP</label>
-  <input id="profileHP" type="number" value="${esc(hp)}" placeholder="0">
-</div>
+  <div class="field">
+    <label>HANDLE</label>
+    <input
+      id="profileHandle"
+      value="${esc(profile.handle||"")}"
+      placeholder="Your handle">
+  </div>
 
-<div class="field">
-  <label>ARMOR</label>
-  <input id="profileArmor" type="number" value="${esc(armor)}" placeholder="0">
-</div>
+  <div class="field">
+    <label>PRONOUNS</label>
+    <input
+      id="profilePronouns"
+      value="${esc(pronouns)}"
+      placeholder="e.g. they/them">
+  </div>
 
-<div class="field">
-  <label>NOTES</label>
-  <textarea id="profileNotes"
-    placeholder="Character notes...">${esc(notes)}</textarea>
-</div>
+  <div class="fields">
 
-<div class="field">
-  <label>ABOUT ME</label>
-  <textarea id="profileAbout"
-    placeholder="Tell the world who you are...">${esc(about)}</textarea>
-</div>
+    <div class="field">
+      <label>HP</label>
+      <input
+        id="profileHP"
+        type="number"
+        value="${hp??""}"
+        placeholder="0">
+    </div>
 
-            <button class="save" onclick="saveProfile()">
-              SAVE PROFILE
-            </button>
+    <div class="field">
+      <label>ARMOR</label>
+      <input
+        id="profileArmor"
+        type="number"
+        value="${armor??""}"
+        placeholder="0">
+    </div>
+
+  </div>
+
+  <div class="field">
+    <label>ABOUT ME</label>
+    <textarea
+      id="profileAbout"
+      placeholder="Tell the world who you are...">${esc(about)}</textarea>
+  </div>
+
+  <div class="field">
+    <label>NOTES</label>
+    <textarea
+      id="profileNotes"
+      placeholder="Character notes...">${esc(notes)}</textarea>
+  </div>
+
+  <div class="field">
+    <label>PROFILE IMAGE</label>
+    <input
+      id="profileImage"
+      type="file"
+      accept="image/*"
+      style="width:100%">
+  </div>
+
+  <button class="save" onclick="saveProfile()">
+    SAVE PROFILE
+  </button>
+
+  <button
+    type="button"
+    class="cancel"
+    onclick="cancelProfileEdit()"
+    style="margin-left:8px;padding:10px;border:2px solid var(--ink);background:transparent;cursor:pointer">
+    CANCEL
+  </button>
+
+</div>
 
           </div>
 
@@ -440,14 +568,28 @@ async function loadProfile(punkId){
 }
 
 
-async function saveProfile(){
+function editProfile(){
+  const display=document.getElementById("profileDisplay");
+  const editor=document.getElementById("profileEditor");
+
+  if(display)display.style.display="none";
+  if(editor)editor.style.display="block";
+}
+
+function cancelProfileEdit(){
+  const display=document.getElementById("profileDisplay");
+  const editor=document.getElementById("profileEditor");
+
+  if(display)display.style.display="block";
+  if(editor)editor.style.display="none";
+}
+  async function saveProfile(){
 
   const punkId=selectedProfilePunk;
   if(!punkId)return;
 
 const handle=val("profileHandle");
 const playerName=val("profilePlayerName");
-const alias=val("profileAlias");
 const pronouns=val("profilePronouns");
 const hp=val("profileHP");
 const armor=val("profileArmor");
@@ -499,7 +641,6 @@ const file=document.getElementById("profileImage")?.files?.[0];
   data:{
     ...(existing?.data||{}),
   player_name:playerName,
-  alias,
   pronouns,
   hp:hp===""?null:Number(hp),
   armor:armor===""?null:Number(armor),
