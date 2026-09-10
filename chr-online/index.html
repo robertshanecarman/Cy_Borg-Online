@@ -706,18 +706,31 @@ function render(){
             </span>
 
             <h3>
-              ${esc(item.name)}
-            </h3>
+  ${esc(item.name)}
+</h3>
 
-            ${
-              item.notes
-              ? `<div class="story" style="margin-bottom:12px">
-                   ${esc(item.notes).replace(/\n/g,"<br>")}
-                 </div>`
-              : ""
-            }
+${
+  item.mechanics
+  ? `<div style="
+       color:var(--blue);
+       font-size:11px;
+       line-height:1.5;
+       margin-bottom:12px;
+     ">
+       ${esc(item.mechanics).replace(/\n/g,"<br>")}
+     </div>`
+  : ""
+}
 
-            <div class="field">
+${
+  item.notes
+  ? `<div class="story" style="margin-bottom:12px">
+       ${esc(item.notes).replace(/\n/g,"<br>")}
+     </div>`
+  : ""
+}
+
+<div class="field">
               <label>Quantity</label>
 
               <input
