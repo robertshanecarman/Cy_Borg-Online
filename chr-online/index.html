@@ -1111,7 +1111,6 @@ async function saveInventoryMechanics(inventoryId){
 
 
 async function setInventoryQuantity(inventoryId,quantity){
-async function setInventoryQuantity(inventoryId,quantity){
 
   const punkId=selectedProfilePunk;
   if(!punkId)return;
@@ -1378,7 +1377,7 @@ function checkLogin(){
 
   }
 }
-}
+
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 async function saveNews(){
 
