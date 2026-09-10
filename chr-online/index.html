@@ -1876,7 +1876,7 @@ async function removeDMInventoryItem(
 
     await loadDMProfileValues();
 
-  }catch(e){
+    }catch(e){
 
     alert(
       "Could not remove inventory item: "+
@@ -1885,7 +1885,15 @@ async function removeDMInventoryItem(
 
   }
 }
-  loadDMProfileValues();
+
+  const dmProfileValues=document.getElementById("dmProfileValues");
+
+  if(
+    dmProfileValues &&
+    !dmProfileValues.innerHTML.trim()
+  ){
+    loadDMProfileValues();
+  }
 }
 
   if(ce){
