@@ -86,6 +86,40 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
       </div>
 
       <div class="adminBox">
+
+  <h2>SELL SETTINGS</h2>
+
+  <p style="
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.5;
+  ">
+    MARKET ITEMS SELL FOR THIS PERCENTAGE OF THEIR CURRENT STORE PRICE.
+  </p>
+
+  <div class="field">
+
+    <label>Market Sell Percentage</label>
+
+    <input
+      id="sellPercentage"
+      type="number"
+      min="0"
+      max="100"
+      step="1"
+      value="50"
+    >
+
+  </div>
+
+  <button
+    class="save"
+    onclick="saveSellPercentage()"
+  >
+    SAVE SELL SETTINGS
+  </button>
+
+</div><div class="adminBox">
         <h2>PUNK / CRED EDITOR</h2>
         <div class="formgrid">
           <div class="field"><label>Punk Name</label><input id="pName"></div>
@@ -111,7 +145,16 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
 
 <script>
 const SUPABASE_URL="https://hbdmqlopdauicdjpulms.supabase.co";const SUPABASE_KEY="sb_publishable_wMSOehUPo7cQDlym3iQlkA_ch-STqo1";const API=SUPABASE_URL+"/rest/v1";const HEAD={apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
-const CATS=["Weapons","Armor","Chems","Mods","Apps","Misc"];let activeCat="Weapons",listings=[],punks=[],editingListing=null,editingPunk=null,dmPassword="";const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function normalizeImageUrl(url){
+const CATS=["Weapons","Armor","Chems","Mods","Apps","Misc"];
+let activeCat="Weapons",
+    listings=[],
+    punks=[],
+    sellInventory=[],
+    sellPercentage=50,
+    currencyLabel="CRED",
+    editingListing=null,
+    editingPunk=null,
+    dmPassword="";;const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));function normalizeImageUrl(url){
   url=(url||"").trim();
   if(!url)return "";
 
@@ -176,7 +219,11 @@ listings=l.map(x=>({
 }));
 
     punks=p;
-    initUI();
+initUI();
+
+if(activeCat==="SELL"){
+  await loadSellInventory();
+}
   }catch(e){
     console.error(e);
     $('listingGrid').innerHTML=
@@ -187,10 +234,286 @@ function initUI(){
   const savedFormCat=$("fCat").value;
   $("fCat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
   $("fCat").value=CATS.includes(savedFormCat)?savedFormCat:activeCat;
-  $("tabs").innerHTML=CATS.map(c=>`<button class="tab ${c===activeCat?"active":""}" onclick="setCat('${c}')">${c}</button>`).join("");$("punkSelect").innerHTML=punks.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");let saved=localStorage.getItem("selectedPunk");if(saved&&punks.some(p=>String(p.id)===String(saved)))$("punkSelect").value=saved;else if(punks[0])$("punkSelect").value=punks[0].id;$('punkSelect').onchange=()=>{localStorage.setItem('selectedPunk',$('punkSelect').value);render()};render();renderAdmin()}
-function setCat(c){activeCat=c;$("tabs").innerHTML=CATS.map(x=>`<button class="tab ${x===activeCat?"active":""}" onclick="setCat('${x}')">${x}</button>`).join("");render()}
+  $("tabs").innerHTML=
+  CATS.map(c=>
+    `<button class="tab ${c===activeCat?"active":""}" onclick="setCat('${c}')">${c}</button>`
+  ).join("")+
+  `<button class="tab ${activeCat==="SELL"?"active":""}" onclick="setCat('SELL')">SELL</button>`;;$("punkSelect").innerHTML=punks.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");let saved=localStorage.getItem("selectedPunk");if(saved&&punks.some(p=>String(p.id)===String(saved)))$("punkSelect").value=saved;else if(punks[0])$("punkSelect").value=punks[0].id;$('punkSelect').onchange=()=>{
+  localStorage.setItem('selectedPunk',$('punkSelect').value);
+
+  if(activeCat==="SELL"){
+    loadSellInventory();
+  }else{
+    render();
+  }
+};render();renderAdmin()}
+function setCat(c){
+
+  activeCat=c;
+
+  $("tabs").innerHTML=
+    CATS.map(x=>
+      `<button class="tab ${x===activeCat?"active":""}" onclick="setCat('${x}')">${x}</button>`
+    ).join("")+
+    `<button class="tab ${activeCat==="SELL"?"active":""}" onclick="setCat('SELL')">SELL</button>`;
+
+  if(activeCat==="SELL"){
+    loadSellInventory();
+  }else{
+    render();
+  }
+}
 function currentPunk(){return punks.find(p=>String(p.id)===String($("punkSelect").value))||punks[0]}
+  async function loadSellInventory(){
+
+  const p=currentPunk();
+
+  if(!p){
+    sellInventory=[];
+    renderSell();
+    return;
+  }
+
+  $("listingGrid").innerHTML=
+    `<div class="empty">ACCESSING ${esc(p.name)} INVENTORY...</div>`;
+
+  try{
+
+    const [inventory,settings]=await Promise.all([
+
+      api(
+        '/punk_inventory?select=*&punk_id=eq.'+
+        encodeURIComponent(p.id)+
+        '&quantity=gt.0&order=name.asc'
+      ),
+
+      api(
+        '/campaign_profile_settings?select=*&id=eq.1&limit=1'
+      )
+
+    ]);
+
+    sellInventory=inventory||[];
+
+    if(settings?.[0]){
+      sellPercentage=
+        Number(settings[0].sell_percentage??50);
+
+      currencyLabel=
+        settings[0].currency_label||"CRED";
+    }
+
+    renderSell();
+
+  }catch(e){
+
+    console.error("SELL INVENTORY ERROR:",e);
+
+    $("listingGrid").innerHTML=
+      `<div class="empty">
+        INVENTORY CONNECTION ERROR.<br>
+        ${esc(e.message)}
+      </div>`;
+
+  }
+}
+
+
+function getSellValue(item){
+
+  if(item.listing_id){
+
+    const marketItem=
+      listings.find(x=>
+        String(x.id)===String(item.listing_id)
+      );
+
+    const marketPrice=
+      marketItem
+        ? Number(marketItem.price||0)
+        : Number(item.last_market_price||0);
+
+    return Math.floor(
+      marketPrice * sellPercentage / 100
+    );
+
+  }
+
+  return Math.max(
+    0,
+    Number(item.manual_sell_price||0)
+  );
+}
+
+
+function renderSell(){
+
+  const p=currentPunk();
+
+  $("creditDisplay").textContent=
+    `${p?p.creds:0} ${currencyLabel}${p&&p.creds===1?"":"S"}`;
+
+  if(!p){
+
+    $("listingGrid").innerHTML=
+      `<div class="empty">NO PUNK SELECTED.</div>`;
+
+    return;
+  }
+
+
+  if(!sellInventory.length){
+
+    $("listingGrid").innerHTML=
+      `<div class="empty">
+        ${esc(p.name)} HAS NOTHING TO SELL.
+      </div>`;
+
+    return;
+  }
+
+
+  $("listingGrid").innerHTML=
+    sellInventory.map(item=>{
+
+      const sellValue=getSellValue(item);
+
+      const sellable=sellValue>0;
+
+      return `
+        <article class="card">
+
+          <div class="cardbody">
+
+            <div class="tag">
+              INVENTORY // QTY ${Math.max(0,Number(item.quantity||0))}
+            </div>
+
+            <div class="name">
+              ${esc(item.name)}
+            </div>
+
+            ${
+              item.mechanics
+              ? `<div style="
+                   color:var(--cyan);
+                   font-size:11px;
+                   line-height:1.45;
+                   margin-bottom:10px;
+                 ">
+                   ${esc(item.mechanics).replace(/\n/g,"<br>")}
+                 </div>`
+              : ""
+            }
+
+            <div class="buyrow">
+
+              <div>
+
+                ${
+                  sellable
+
+                  ? `<span class="price">
+                       ${sellValue} ${esc(currencyLabel)}
+                     </span>
+                     <div class="stock">
+                       SELL VALUE // EACH
+                     </div>`
+
+                  : `<span style="
+                       color:var(--muted);
+                       font-size:13px;
+                     ">
+                       NO SELL VALUE
+                     </span>`
+                }
+
+              </div>
+
+              ${
+                sellable
+                ? `<button
+                     class="buy"
+                     onclick="sellItem(${item.id})">
+                     SELL
+                   </button>`
+                : ""
+              }
+
+            </div>
+
+          </div>
+
+        </article>
+      `;
+
+    }).join("");
+}
+
+
+async function sellItem(inventoryId){
+
+  const p=currentPunk();
+
+  if(!p)return;
+
+  const item=
+    sellInventory.find(x=>x.id===inventoryId);
+
+  if(!item)return;
+
+  const sellValue=getSellValue(item);
+
+  if(sellValue<=0)return;
+
+
+  if(!confirm(
+    "Sell "+item.name+
+    " for "+sellValue+" "+currencyLabel+"?"
+  )){
+    return;
+  }
+
+
+  try{
+
+    await api(
+      '/rpc/sell_inventory_item',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(p.id),
+          p_inventory_id:Number(inventoryId)
+        })
+      }
+    );
+
+    await load();
+
+    await loadSellInventory();
+
+    alert(
+      "SOLD // +"+
+      sellValue+" "+
+      currencyLabel
+    );
+
+  }catch(e){
+
+    alert(
+      e.message.includes("ITEM_NOT_SELLABLE")
+        ?"THIS ITEM CANNOT BE SOLD."
+        :"SALE FAILED: "+e.message
+    );
+
+  }
+}
 function render(){
+
+  if(activeCat==="SELL"){
+    return;
+  }
+
   const p=currentPunk();
 
   $("creditDisplay").textContent=
@@ -250,7 +573,84 @@ ${x.mechanics?`
 }
 async function buy(id){try{const p=currentPunk();if(!p)return;const result=await api('/rpc/purchase_item',{method:'POST',body:JSON.stringify({p_punk_id:p.id,p_listing_id:id})});await load();alert("PURCHASE COMPLETE.")}catch(e){alert(e.message.includes("NOT_ENOUGH_CRED")?"NOT ENOUGH CRED.":e.message.includes("SOLD_OUT")?"SOLD OUT.":"PURCHASE FAILED: "+e.message)}}
 function openDM(){$("loginError").textContent="";$('dmPass').value="";$('loginModal').style.display="flex";setTimeout(()=>$('dmPass').focus(),50)}function closeLogin(){$('loginModal').style.display="none"}function checkDM(){if($('dmPass').value==="CY_BORG"){dmPassword=$('dmPass').value;closeLogin();$('storeView').style.display="none";$('dmPanel').style.display="block";renderAdmin()}else $('loginError').textContent="ACCESS DENIED."}function closeDM(){$('dmPanel').style.display="none";$('storeView').style.display="block";render()}
-async function dm(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
+async function dm(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}async function loadSellSettings(){
+
+  try{
+
+    const rows=await api(
+      '/campaign_profile_settings?select=*&id=eq.1&limit=1'
+    );
+
+    if(rows?.[0]){
+
+      sellPercentage=
+        Number(rows[0].sell_percentage??50);
+
+      currencyLabel=
+        rows[0].currency_label||"CRED";
+
+      const box=$("sellPercentage");
+
+      if(box){
+        box.value=sellPercentage;
+      }
+
+    }
+
+  }catch(e){
+
+    console.error(
+      "SELL SETTINGS LOAD ERROR:",
+      e
+    );
+
+  }
+}
+
+
+async function saveSellPercentage(){
+
+  const percentage=Math.min(
+    100,
+    Math.max(
+      0,
+      Math.floor(
+        Number($("sellPercentage")?.value)||0
+      )
+    )
+  );
+
+  try{
+
+    await api(
+      '/campaign_profile_settings?id=eq.1',
+      {
+        method:"PATCH",
+        headers:{
+          Prefer:"return=representation"
+        },
+        body:JSON.stringify({
+          sell_percentage:percentage
+        })
+      }
+    );
+
+    sellPercentage=percentage;
+
+    alert(
+      "MARKET SELL VALUE SET TO "+
+      percentage+"%."
+    );
+
+  }catch(e){
+
+    alert(
+      "COULD NOT SAVE SELL SETTINGS: "+
+      e.message
+    );
+
+  }
+}
 function clearListingForm(){
   editingListing=null;
   $('fName').value="";
@@ -336,7 +736,7 @@ async function deleteListing(id){if(confirm("Delete this listing?"))try{await dm
 async function savePunk(){const name=$('pName').value.trim();if(!name)return alert("Punk needs a name.");const creds=Math.max(0,Number($('pCreds').value)||0);try{if(editingPunk)await dm('edit_punk',{id:editingPunk,name,creds});else await dm('add_punk',{name,creds});clearPunkForm();await load()}catch(e){alert("DM action failed: "+e.message)}}
 function clearPunkForm(){editingPunk=null;$('pName').value="";$('pCreds').value=""}function editPunk(id){const p=punks.find(x=>x.id===id);editingPunk=id;$('pName').value=p.name;$('pCreds').value=p.creds}
 async function deletePunk(id){if(punks.length<=1)return alert("Keep at least one Punk.");if(confirm("Delete this Punk?"))try{await dm('delete_punk',{id});await load()}catch(e){alert("DM action failed: "+e.message)}}
-function renderAdmin(){$('adminListings').innerHTML=listings.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${esc(x.cat)} • ${x.price} CRED • QTY ${Math.max(0,Number(x.quantity ?? 0))}</span><span><button class="smallbtn" onclick="editListing(${x.id})">EDIT</button> <button class="smallbtn" onclick="deleteListing(${x.id})">X</button></span></div>`).join("");$('adminPunks').innerHTML=punks.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${x.creds} CRED</span><span><button class="smallbtn" onclick="editPunk(${x.id})">EDIT</button> <button class="smallbtn" onclick="deletePunk(${x.id})">X</button></span></div>`).join("")}
+function renderAdmin(){loadSellSettings();$('adminListings').innerHTML=listings.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${esc(x.cat)} • ${x.price} CRED • QTY ${Math.max(0,Number(x.quantity ?? 0))}</span><span><button class="smallbtn" onclick="editListing(${x.id})">EDIT</button> <button class="smallbtn" onclick="deleteListing(${x.id})">X</button></span></div>`).join("");$('adminPunks').innerHTML=punks.map(x=>`<div class="adminItem"><span><b>${esc(x.name)}</b><br>${x.creds} CRED</span><span><button class="smallbtn" onclick="editPunk(${x.id})">EDIT</button> <button class="smallbtn" onclick="deletePunk(${x.id})">X</button></span></div>`).join("")}
 load();setInterval(load,5000);
 </script>
 </body>
