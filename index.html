@@ -491,11 +491,131 @@ function renderSell(){
         </article>
       `;
 
-    }).join("");
+       }).join("");
 }
 
 
-async function sellItem(inventoryId){
+function render(){
+
+  if(activeCat==="SELL"){
+    return;
+  }
+
+  const p=currentPunk();
+
+  $("creditDisplay").textContent=
+    `${p?p.creds:0} CRED${p&&p.creds===1?"":"S"}`;
+
+  const arr=listings.filter(x=>x.cat===activeCat);
+
+  $("listingGrid").innerHTML=arr.length
+    ?arr.map(x=>{
+
+      const stock=Math.max(
+        0,
+        Number(x.quantity??0)
+      );
+
+      const soldOut=stock<=0;
+
+      const affordable=
+        p &&
+        p.creds>=Number(x.price) &&
+        !soldOut;
+
+      const imageUrl=
+        normalizeImageUrl(x.img);
+
+      const imageHtml=imageUrl
+        ?`<img
+            src="${esc(imageUrl)}"
+            class="marketImg"
+            alt="${esc(x.name)}"
+            loading="lazy"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+          >`
+        :"";
+
+      return `
+        <article class="card">
+
+          ${imageHtml}
+
+          <div
+            class="picFallback"
+            style="display:${imageUrl?"none":"flex"}"
+          >
+            NO IMAGE // SET ONE IN DM PANEL
+          </div>
+
+          <div class="cardbody">
+
+            <div class="tag">
+              ${esc(x.cat)}
+            </div>
+
+            <div class="name">
+              ${esc(x.name)}
+            </div>
+
+            ${
+              x.mechanics
+              ? `<div style="
+                   color:var(--cyan);
+                   font-size:11px;
+                   line-height:1.45;
+                   margin-bottom:10px;
+                 ">
+                   ${esc(x.mechanics).replace(/\n/g,"<br>")}
+                 </div>`
+              : ""
+            }
+
+            <div class="desc">
+              ${esc(x.desc).replace(/\n/g,"<br>")}
+            </div>
+
+            <div class="buyrow">
+
+              <div>
+
+                <span class="price">
+                  ${Number(x.price)} CRED
+                </span>
+
+                <div class="stock">
+                  ${soldOut
+                    ?"SOLD OUT"
+                    :"STOCK: "+stock}
+                </div>
+
+              </div>
+
+              <button
+                class="buy"
+                ${affordable?"":"disabled"}
+                onclick="buy(${x.id})"
+              >
+                ${soldOut
+                  ?"SOLD OUT"
+                  :"BUY NOW!!!"}
+              </button>
+
+            </div>
+
+          </div>
+
+        </article>
+      `;
+
+    }).join("")
+    :`<div class="empty">
+       NO STOCK IN THIS SECTION.
+     </div>`;
+}
+
+
+async function sellItem(inventoryId){{
 
   const p=currentPunk();
 
