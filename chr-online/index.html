@@ -1084,16 +1084,17 @@ async function saveInventoryMechanics(inventoryId){
   try{
 
     await api(
-      '/rpc/set_inventory_quantity',
-      {
-        method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_inventory_id:Number(inventoryId),
-          p_quantity:0
-        })
-      }
-    );
+  '/rpc/dm_set_inventory_quantity',
+  {
+    method:"POST",
+    body:JSON.stringify({
+      p_password:dmPassword,
+      p_punk_id:Number(punkId),
+      p_inventory_id:Number(inventoryId),
+      p_quantity:Math.floor(quantity)
+    })
+  }
+);
 
     await loadInventory(punkId);
 
