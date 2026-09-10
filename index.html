@@ -521,7 +521,7 @@ async function sellItem(inventoryId){
 
   try{
 
-    await api(
+    const result=await api(
       '/rpc/sell_inventory_item',
       {
         method:"POST",
@@ -532,15 +532,52 @@ async function sellItem(inventoryId){
       }
     );
 
-    await load();
 
-    await load();
+    // Update the Punk's CRED immediately.
+    if(result?.new_creds!==undefined){
+      p.creds=Number(result.new_creds);
+    }
 
-alert(
-  "SOLD // +"+
-  sellValue+" "+
-  currencyLabel
-);
+
+    // Update inventory immediately.
+    const remaining=
+      Number(result?.remaining_quantity??0);
+
+    if(remaining<=0){
+
+      sellInventory=
+        sellInventory.filter(
+          x=>x.id!==inventoryId
+        );
+
+    }else{
+
+      const owned=
+        sellInventory.find(
+          x=>x.id===inventoryId
+        );
+
+      if(owned){
+        owned.quantity=remaining;
+      }
+
+    }
+
+
+    // Force one immediate clean redraw.
+    lastSellRender="";
+    renderSell();
+
+
+    alert(
+      "SOLD // +"+
+      Number(result?.sell_price??sellValue)+" "+
+      currencyLabel
+    );
+
+
+    // Quietly synchronize with the database afterward.
+    loadSellInventory(true);
 
   }catch(e){
 
@@ -551,69 +588,6 @@ alert(
     );
 
   }
-}
-function render(){
-
-  if(activeCat==="SELL"){
-    return;
-  }
-
-  const p=currentPunk();
-
-  $("creditDisplay").textContent=
-    `${p?p.creds:0} CRED${p&&p.creds===1?"":"S"}`;
-
-  const arr=listings.filter(x=>x.cat===activeCat);
-
-  $("listingGrid").innerHTML=arr.length
-    ?arr.map(x=>{
-      const stock=Math.max(0,Number(x.quantity ?? 0));
-      const soldOut=stock<=0;
-      const affordable=p&&p.creds>=Number(x.price)&&!soldOut;
-      const imageUrl=normalizeImageUrl(x.img);
-
-      const imageHtml=imageUrl
-        ?`<img src="${esc(imageUrl)}"
-            class="marketImg"
-            alt="${esc(x.name)}"
-            loading="lazy"
-            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
-        :"";
-
-      return `<article class="card">
-        ${imageHtml}
-        <div class="picFallback" style="display:${imageUrl?"none":"flex"}">
-          NO IMAGE // SET ONE IN DM PANEL
-        </div>
-        <div class="cardbody">
-          <div class="tag">${esc(x.cat)}</div>
-          <div class="name">${esc(x.name)}</div>
-
-${x.mechanics?`
-  <div style="
-    color:var(--cyan);
-    font-size:11px;
-    line-height:1.45;
-    margin-bottom:10px;
-  ">
-    ${esc(x.mechanics).replace(/\n/g,"<br>")}
-  </div>
-`:""}
-
-<div class="desc">${esc(x.desc).replace(/\n/g,"<br>")}</div>
-          <div class="buyrow">
-            <div>
-              <span class="price">${Number(x.price)} CRED</span>
-              <div class="stock">${soldOut?"SOLD OUT":"STOCK: "+stock}</div>
-            </div>
-            <button class="buy" ${affordable?"":"disabled"} onclick="buy(${x.id})">
-              ${soldOut?"SOLD OUT":"BUY NOW!!!"}
-            </button>
-          </div>
-        </div>
-      </article>`;
-    }).join("")
-    :`<div class="empty">NO STOCK IN THIS SECTION.</div>`;
 }
 async function buy(id){try{const p=currentPunk();if(!p)return;const result=await api('/rpc/purchase_item',{method:'POST',body:JSON.stringify({p_punk_id:p.id,p_listing_id:id})});await load();alert("PURCHASE COMPLETE.")}catch(e){alert(e.message.includes("NOT_ENOUGH_CRED")?"NOT ENOUGH CRED.":e.message.includes("SOLD_OUT")?"SOLD OUT.":"PURCHASE FAILED: "+e.message)}}
 function openDM(){$("loginError").textContent="";$('dmPass').value="";$('loginModal').style.display="flex";setTimeout(()=>$('dmPass').focus(),50)}function closeLogin(){$('loginModal').style.display="none"}function checkDM(){if($('dmPass').value==="CY_BORG"){dmPassword=$('dmPass').value;closeLogin();$('storeView').style.display="none";$('dmPanel').style.display="block";renderAdmin()}else $('loginError').textContent="ACCESS DENIED."}function closeDM(){$('dmPanel').style.display="none";$('storeView').style.display="block";render()}
