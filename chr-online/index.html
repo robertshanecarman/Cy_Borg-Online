@@ -858,14 +858,6 @@ async function loadProfile(punkId){
   render();
 }
 
-  }catch(e){
-    console.error("PROFILE LOAD ERROR:",e);
-    db.profile=null;
-  }
-
-  render();
-}
-
 
 function editProfile(){
   const display=document.getElementById("profileDisplay");
@@ -881,7 +873,8 @@ function cancelProfileEdit(){
 
   if(display)display.style.display="block";
   if(editor)editor.style.display="none";
-}async function addManualInventoryItem(){
+}
+  async function addManualInventoryItem(){
 
   const punkId=selectedProfilePunk;
   if(!punkId)return;
@@ -1015,7 +1008,8 @@ async function setInventoryQuantity(inventoryId,quantity){
   }catch(e){
     alert("Could not save stat: "+e.message);
   }
-}async function saveQuickProfileField(field,value){
+}
+  async function saveQuickProfileField(field,value){
 
   const punkId=selectedProfilePunk;
   if(!punkId)return;
@@ -1342,7 +1336,8 @@ async function refreshProfileConfig(){
   }catch(e){
     console.error("PROFILE CONFIG ERROR:",e);
   }
-}async function loadDMProfileValues(){
+}
+  async function loadDMProfileValues(){
 
   const select=document.getElementById("dmProfilePunk");
   const target=document.getElementById("dmProfileValues");
