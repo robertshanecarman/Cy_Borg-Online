@@ -150,6 +150,7 @@ let activeCat="Weapons",
     listings=[],
     punks=[],
     sellInventory=[],
+    lastSellRender="",
     sellPercentage=50,
     currencyLabel="CRED",
     editingListing=null,
@@ -258,9 +259,10 @@ function initUI(){
   `<button class="tab ${activeCat==="SELL"?"active":""}" onclick="setCat('SELL')">SELL</button>`;;$("punkSelect").innerHTML=punks.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");let saved=localStorage.getItem("selectedPunk");if(saved&&punks.some(p=>String(p.id)===String(saved)))$("punkSelect").value=saved;else if(punks[0])$("punkSelect").value=punks[0].id;$('punkSelect').onchange=()=>{
   localStorage.setItem('selectedPunk',$('punkSelect').value);
 
-  if(activeCat==="SELL"){
+ if(activeCat==="SELL"){
+    lastSellRender="";
     loadSellInventory();
-  }else{
+}else{
     render();
   }
 };render();renderAdmin()}
@@ -274,9 +276,10 @@ function setCat(c){
     ).join("")+
     `<button class="tab ${activeCat==="SELL"?"active":""}" onclick="setCat('SELL')">SELL</button>`;
 
-  if(activeCat==="SELL"){
+ if(activeCat==="SELL"){
+    lastSellRender="";
     loadSellInventory();
-  }else{
+}else{
     render();
   }
 }
@@ -371,6 +374,28 @@ function renderSell(){
 
   $("creditDisplay").textContent=
     `${p?p.creds:0} ${currencyLabel}${p&&p.creds===1?"":"S"}`;
+
+  const renderKey=JSON.stringify({
+    punkId:p?.id||null,
+    creds:p?.creds||0,
+    sellPercentage,
+    currencyLabel,
+    inventory:sellInventory.map(x=>({
+      id:x.id,
+      name:x.name,
+      quantity:x.quantity,
+      listing_id:x.listing_id,
+      manual_sell_price:x.manual_sell_price,
+      last_market_price:x.last_market_price,
+      mechanics:x.mechanics
+    }))
+  });
+
+  if(renderKey===lastSellRender){
+    return;
+  }
+
+  lastSellRender=renderKey;
 
   if(!p){
 
