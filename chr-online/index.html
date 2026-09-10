@@ -739,18 +739,28 @@ ${
 }
 
 <div class="field">
-              <label>Quantity</label>
+  <label>Quantity</label>
 
-              <input
-                type="number"
-                min="0"
-                value="${esc(item.quantity)}"
-                onchange="setInventoryQuantity(
-                  ${item.id},
-                  this.value
-                )"
-              >
-            </div>
+  <input
+    type="number"
+    min="0"
+    value="${esc(item.quantity)}"
+    onchange="setInventoryQuantity(
+      ${item.id},
+      this.value
+    )"
+  >
+</div>
+
+<button
+  class="small delete"
+  style="margin-top:6px"
+  onclick="removePlayerInventoryItem(${item.id})"
+>
+  REMOVE ITEM
+</button>
+
+</article>
 
           </article>
 
@@ -900,11 +910,12 @@ async function loadInventory(punkId){
 
   try{
 
-    const rows=await api(
-      '/punk_inventory?select=*&punk_id=eq.'+
-      encodeURIComponent(punkId)+
-      '&order=name.asc'
-    );
+   const rows=await api(
+  '/punk_inventory?select=*&punk_id=eq.'+
+  encodeURIComponent(punkId)+
+  '&quantity=gt.0'+
+  '&order=name.asc'
+);
 
     db.inventory=rows||[];
 
@@ -1052,7 +1063,54 @@ async function saveInventoryMechanics(inventoryId){
     );
 
   }
+}async function removePlayerInventoryItem(inventoryId){
+
+  const punkId=selectedProfilePunk;
+
+  if(!punkId)return;
+
+  const item=db.inventory.find(
+    x=>x.id==inventoryId
+  );
+
+  if(!item)return;
+
+  if(!confirm(
+    "Remove "+item.name+" from inventory?"
+  )){
+    return;
+  }
+
+  try{
+
+    await api(
+      '/rpc/set_inventory_quantity',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_quantity:0
+        })
+      }
+    );
+
+    await loadInventory(punkId);
+
+    render();
+
+  }catch(e){
+
+    alert(
+      "Could not remove inventory item: "+
+      e.message
+    );
+
+  }
 }
+
+
+async function setInventoryQuantity(inventoryId,quantity){
 async function setInventoryQuantity(inventoryId,quantity){
 
   const punkId=selectedProfilePunk;
@@ -1284,7 +1342,31 @@ const file=document.getElementById("profileImage")?.files?.[0];
 
 async function ask(e){e.preventDefault();const q=val("question"),player=val("askPlayer");if(!player)return alert("Please select your character.");if(!q)return alert("Please enter a question.");try{await api('/ask_ai',{method:'POST',body:JSON.stringify({player_username:player,question:q,answer:""})});await loadDB()}catch(err){alert("Could not send question: "+err.message)}return false}
 function openLogin(){document.getElementById("login").style.display="flex";document.getElementById("pass").value="";document.getElementById("loginErr").textContent="";setTimeout(()=>document.getElementById("pass").focus(),30)}function closeLogin(){document.getElementById("login").style.display="none"}
-function checkLogin(){if(document.getElementById("pass").value==="CY_BORG"){dmPassword=document.getElementById("pass").value;closeLogin();document.getElementById("publicPage").style.display="none";document.getElementById("dmPage").style.display="block";admin()}else document.getElementById("loginErr").textContent="ACCESS DENIED."}function exitDM(){document.getElementById("dmPage").style.display="none";document.getElementById("publicPage").style.display="block";render()}
+function checkLogin(){
+
+  if(document.getElementById("pass").value==="CY_BORG"){
+
+    dmPassword=
+      document.getElementById("pass").value;
+
+    closeLogin();
+
+    document.getElementById("publicPage").style.display="none";
+    document.getElementById("dmPage").style.display="block";
+
+    admin();
+
+    setTimeout(()=>{
+      loadDMProfileValues();
+    },0);
+
+  }else{
+
+    document.getElementById("loginErr").textContent=
+      "ACCESS DENIED.";
+
+  }
+}
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 async function saveNews(){
 
