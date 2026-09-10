@@ -153,6 +153,7 @@ let db={
   profile:null,
   profileSettings:{currency_label:"CRED"},
   statCategories:[],
+  inventory:[],
 };
 let dmPassword="";
 let selectedProfilePunk=localStorage.getItem("chrProfilePunk")||"";
@@ -627,16 +628,96 @@ function render(){
 
 
     <div class="sectionTitle" style="margin-top:26px">
-      INVENTORY
+  INVENTORY
+</div>
+
+<div id="profileInventory">
+
+  ${
+    db.inventory.length
+
+    ? `<div class="grid">
+
+        ${db.inventory.map(item=>`
+
+          <article class="card">
+
+            <span class="label">
+              ITEM
+            </span>
+
+            <h3>
+              ${esc(item.name)}
+            </h3>
+
+            ${
+              item.notes
+              ? `<div class="story" style="margin-bottom:12px">
+                   ${esc(item.notes).replace(/\n/g,"<br>")}
+                 </div>`
+              : ""
+            }
+
+            <div class="field">
+              <label>Quantity</label>
+
+              <input
+                type="number"
+                min="0"
+                value="${esc(item.quantity)}"
+                onchange="setInventoryQuantity(
+                  ${item.id},
+                  this.value
+                )"
+              >
+            </div>
+
+          </article>
+
+        `).join("")}
+
+      </div>`
+
+    : `<div class="empty">
+         INVENTORY EMPTY.
+       </div>`
+  }
+
+
+  <div class="card" style="margin-top:18px">
+
+    <span class="label">
+      ADD ITEM
+    </span>
+
+    <div class="field" style="margin-top:12px">
+      <label>Item Name</label>
+      <input
+        id="manualInventoryName"
+        placeholder="Found item, weapon, key, gear..."
+      >
     </div>
 
-    <div id="profileInventory">
-
-      <div class="empty">
-        INVENTORY CONNECTION COMING NEXT.
-      </div>
-
+    <div class="field">
+      <label>Quantity</label>
+      <input
+        id="manualInventoryQuantity"
+        type="number"
+        min="1"
+        value="1"
+      >
     </div>
+
+    <button
+      class="save"
+      onclick="addManualInventoryItem()"
+    >
+      ADD TO INVENTORY
+    </button>
+
+  </div>
+
+</div>
 
 
     <div class="sectionTitle" style="margin-top:26px">
@@ -735,7 +816,25 @@ function openProfile(punkId){
   localStorage.setItem("chrProfilePunk",selectedProfilePunk);
   loadProfile(punkId);
 }
+async function loadInventory(punkId){
 
+  try{
+
+    const rows=await api(
+      '/punk_inventory?select=*&punk_id=eq.'+
+      encodeURIComponent(punkId)+
+      '&order=name.asc'
+    );
+
+    db.inventory=rows||[];
+
+  }catch(e){
+
+    console.error("INVENTORY LOAD ERROR:",e);
+    db.inventory=[];
+
+  }
+}
 async function loadProfile(punkId){
   selectedProfilePunk=String(punkId);
   localStorage.setItem("chrProfilePunk",selectedProfilePunk);
@@ -748,6 +847,16 @@ async function loadProfile(punkId){
     );
 
     db.profile=rows&&rows.length?rows[0]:null;
+
+  }catch(e){
+    console.error("PROFILE LOAD ERROR:",e);
+    db.profile=null;
+  }
+
+  await loadInventory(punkId);
+
+  render();
+}
 
   }catch(e){
     console.error("PROFILE LOAD ERROR:",e);
@@ -772,7 +881,88 @@ function cancelProfileEdit(){
 
   if(display)display.style.display="block";
   if(editor)editor.style.display="none";
-}async function saveProfileStat(statId,value){
+}async function addManualInventoryItem(){
+
+  const punkId=selectedProfilePunk;
+  if(!punkId)return;
+
+  const name=val("manualInventoryName");
+
+  const quantity=Math.max(
+    1,
+    Number(val("manualInventoryQuantity")||1)
+  );
+
+  if(!name)
+    return alert("Enter an item name.");
+
+  try{
+
+    await api(
+      '/rpc/add_manual_inventory_item',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_name:name,
+          p_quantity:quantity
+        })
+      }
+    );
+
+    await loadInventory(punkId);
+
+    render();
+
+  }catch(e){
+
+    alert(
+      "Could not add inventory item: "+
+      e.message
+    );
+
+  }
+}
+
+
+async function setInventoryQuantity(inventoryId,quantity){
+
+  const punkId=selectedProfilePunk;
+  if(!punkId)return;
+
+  quantity=Math.max(
+    0,
+    Number(quantity||0)
+  );
+
+  try{
+
+    await api(
+      '/rpc/set_inventory_quantity',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_quantity:quantity
+        })
+      }
+    );
+
+    await loadInventory(punkId);
+
+    render();
+
+  }catch(e){
+
+    alert(
+      "Could not update inventory: "+
+      e.message
+    );
+
+  }
+}
+  async function saveProfileStat(statId,value){
 
   const punkId=selectedProfilePunk;
   if(!punkId)return;
@@ -1177,7 +1367,11 @@ async function refreshProfileConfig(){
     const profile=rows?.[0]||{data:{}};
     const data=profile.data||{};
 
-    const punk=db.punks.find(x=>String(x.id)===String(punkId));
+    const punk=db.punks.find(x=>String(x.id)===String(punkId));const inventory=await api(
+  '/punk_inventory?select=*&punk_id=eq.'+
+  encodeURIComponent(punkId)+
+  '&order=name.asc'
+);
 
     target.innerHTML=`
 
@@ -1231,7 +1425,171 @@ async function refreshProfileConfig(){
       <button class="save"
         onclick="saveDMProfileValues(${Number(punkId)})">
         SAVE PUNK PROFILE
-      </button>
+      </button> 
+      <div style="
+  border-top:3px solid var(--ink);
+  margin-top:25px;
+  padding-top:20px;
+">
+
+  <h2>INVENTORY</h2>
+
+  ${
+    inventory.length
+
+    ? inventory.map(item=>{
+
+        const isManual=!item.listing_id;
+
+        return `
+
+          <div style="
+            border-bottom:1px solid var(--line);
+            padding:12px 0;
+          ">
+
+            <strong>
+              ${esc(item.name)}
+            </strong>
+
+            <div class="fields"
+              style="margin-top:8px">
+
+              <div class="field">
+
+                <label>Quantity</label>
+
+                <input
+                  id="dmInvQty_${item.id}"
+                  type="number"
+                  min="0"
+                  value="${esc(item.quantity)}"
+                >
+
+              </div>
+
+
+              ${
+                isManual
+
+                ? `
+                  <div class="field">
+
+                    <label>
+                      Manual Sell Price
+                    </label>
+
+                    <input
+                      id="dmInvSell_${item.id}"
+                      type="number"
+                      min="0"
+                      value="${esc(item.manual_sell_price??0)}"
+                    >
+
+                  </div>
+                `
+
+                : `
+                  <div class="field">
+
+                    <label>
+                      Sell Price
+                    </label>
+
+                    <div style="
+                      padding:10px;
+                      border:2px solid var(--line);
+                      font-size:11px;
+                    ">
+                      AUTO // MARKET LINKED
+                    </div>
+
+                  </div>
+                `
+              }
+
+            </div>
+
+
+            <button
+              class="small"
+              onclick="saveDMInventoryItem(
+                ${Number(punkId)},
+                ${item.id},
+                ${isManual}
+              )"
+            >
+              SAVE ITEM
+            </button>
+
+
+            <button
+              class="small delete"
+              onclick="removeDMInventoryItem(
+                ${Number(punkId)},
+                ${item.id}
+              )"
+            >
+              REMOVE
+            </button>
+
+          </div>
+
+        `;
+
+      }).join("")
+
+    : `<div style="
+         padding:15px 0;
+         color:var(--muted);
+       ">
+         INVENTORY EMPTY.
+       </div>`
+  }
+
+
+  <h3 style="margin-top:22px">
+    ADD MANUAL ITEM
+  </h3>
+
+  <div class="fields">
+
+    <div class="field">
+
+      <label>Item Name</label>
+
+      <input
+        id="dmNewInventoryName"
+        placeholder="Item name"
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>Quantity</label>
+
+      <input
+        id="dmNewInventoryQuantity"
+        type="number"
+        min="1"
+        value="1"
+      >
+
+    </div>
+
+  </div>
+
+
+  <button
+    class="save"
+    onclick="dmAddInventoryItem(${Number(punkId)})"
+  >
+    ADD ITEM
+  </button>
+
+</div>
 
     `;
 
@@ -1392,7 +1750,146 @@ if(punkSelect){
   ){
     punkSelect.value=oldValue;
   }
+async function dmAddInventoryItem(punkId){
 
+  const name=val("dmNewInventoryName");
+
+  const quantity=Math.max(
+    1,
+    Number(val("dmNewInventoryQuantity")||1)
+  );
+
+  if(!name)
+    return alert("Enter an item name.");
+
+  try{
+
+    await api(
+      '/rpc/add_manual_inventory_item',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_name:name,
+          p_quantity:quantity
+        })
+      }
+    );
+
+    await loadDMProfileValues();
+
+  }catch(e){
+
+    alert(
+      "Could not add inventory item: "+
+      e.message
+    );
+
+  }
+}
+
+
+async function saveDMInventoryItem(
+  punkId,
+  inventoryId,
+  isManual
+){
+
+  try{
+
+    const quantity=Math.max(
+      0,
+      Number(
+        val("dmInvQty_"+inventoryId)||0
+      )
+    );
+
+
+    await api(
+      '/rpc/set_inventory_quantity',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_quantity:quantity
+        })
+      }
+    );
+
+
+    if(isManual && quantity>0){
+
+      const sellPrice=Math.max(
+        0,
+        Number(
+          val("dmInvSell_"+inventoryId)||0
+        )
+      );
+
+
+      await api(
+        '/rpc/dm_set_inventory_sell_price',
+        {
+          method:"POST",
+          body:JSON.stringify({
+            p_password:dmPassword,
+            p_inventory_id:Number(inventoryId),
+            p_sell_price:sellPrice
+          })
+        }
+      );
+
+    }
+
+
+    await loadDMProfileValues();
+
+
+  }catch(e){
+
+    alert(
+      "Could not save inventory item: "+
+      e.message
+    );
+
+  }
+}
+
+
+async function removeDMInventoryItem(
+  punkId,
+  inventoryId
+){
+
+  if(!confirm("Remove this item from inventory?"))
+    return;
+
+  try{
+
+    await api(
+      '/rpc/set_inventory_quantity',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_quantity:0
+        })
+      }
+    );
+
+    await loadDMProfileValues();
+
+  }catch(e){
+
+    alert(
+      "Could not remove inventory item: "+
+      e.message
+    );
+
+  }
+}
   loadDMProfileValues();
 }
 
