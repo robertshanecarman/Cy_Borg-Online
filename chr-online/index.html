@@ -1839,7 +1839,149 @@ async function saveDMProfileValues(punkId){
     alert("Could not save Punk profile: "+e.message);
 
   }
-}function admin(){
+}async function dmAddInventoryItem(punkId){
+
+  const name=val("dmNewInventoryName");
+
+  const quantity=Math.max(
+    1,
+    Math.floor(
+      Number(val("dmNewInventoryQuantity")||1)
+    )
+  );
+
+  if(!name){
+    alert("Enter an item name.");
+    return;
+  }
+
+  try{
+
+    await api(
+      '/rpc/add_manual_inventory_item',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_name:name,
+          p_quantity:quantity
+        })
+      }
+    );
+
+    await loadDMProfileValues();
+
+  }catch(e){
+
+    console.error("DM ADD INVENTORY ERROR:",e);
+
+    alert(
+      "Could not add inventory item:\n\n"+
+      e.message
+    );
+
+  }
+}
+
+
+async function saveDMInventoryItem(
+  punkId,
+  inventoryId,
+  isManual
+){
+
+  try{
+
+    const quantity=Math.max(
+      0,
+      Number(
+        val("dmInvQty_"+inventoryId)||0
+      )
+    );
+
+    await api(
+      '/rpc/set_inventory_quantity',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_quantity:quantity
+        })
+      }
+    );
+
+    if(isManual && quantity>0){
+
+      const sellPrice=Math.max(
+        0,
+        Number(
+          val("dmInvSell_"+inventoryId)||0
+        )
+      );
+
+      await api(
+        '/rpc/dm_set_inventory_sell_price',
+        {
+          method:"POST",
+          body:JSON.stringify({
+            p_password:dmPassword,
+            p_inventory_id:Number(inventoryId),
+            p_sell_price:sellPrice
+          })
+        }
+      );
+    }
+
+    await loadDMProfileValues();
+
+  }catch(e){
+
+    console.error("DM SAVE INVENTORY ERROR:",e);
+
+    alert(
+      "Could not save inventory item:\n\n"+
+      e.message
+    );
+  }
+}
+
+
+async function removeDMInventoryItem(
+  punkId,
+  inventoryId
+){
+
+  if(!confirm("Remove this item from inventory?"))
+    return;
+
+  try{
+
+    await api(
+      '/rpc/set_inventory_quantity',
+      {
+        method:"POST",
+        body:JSON.stringify({
+          p_punk_id:Number(punkId),
+          p_inventory_id:Number(inventoryId),
+          p_quantity:0
+        })
+      }
+    );
+
+    await loadDMProfileValues();
+
+  }catch(e){
+
+    console.error("DM REMOVE INVENTORY ERROR:",e);
+
+    alert(
+      "Could not remove inventory item:\n\n"+
+      e.message
+    );
+  }
+}
+  function admin(){
   const ce=document.getElementById("charAdmin");const currencyInput=document.getElementById("currencyLabel");
 
 if(currencyInput){
@@ -1900,146 +2042,6 @@ if(punkSelect){
   ){
     punkSelect.value=oldValue;
   }
-async function dmAddInventoryItem(punkId){
-
-  const name=val("dmNewInventoryName");
-
-  const quantity=Math.max(
-    1,
-    Number(val("dmNewInventoryQuantity")||1)
-  );
-
-  if(!name)
-    return alert("Enter an item name.");
-
-  try{
-
-    await api(
-      '/rpc/add_manual_inventory_item',
-      {
-        method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_name:name,
-          p_quantity:quantity
-        })
-      }
-    );
-
-    await loadDMProfileValues();
-
-  }catch(e){
-
-    alert(
-      "Could not add inventory item: "+
-      e.message
-    );
-
-  }
-}
-
-
-async function saveDMInventoryItem(
-  punkId,
-  inventoryId,
-  isManual
-){
-
-  try{
-
-    const quantity=Math.max(
-      0,
-      Number(
-        val("dmInvQty_"+inventoryId)||0
-      )
-    );
-
-
-    await api(
-      '/rpc/set_inventory_quantity',
-      {
-        method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_inventory_id:Number(inventoryId),
-          p_quantity:quantity
-        })
-      }
-    );
-
-
-    if(isManual && quantity>0){
-
-      const sellPrice=Math.max(
-        0,
-        Number(
-          val("dmInvSell_"+inventoryId)||0
-        )
-      );
-
-
-      await api(
-        '/rpc/dm_set_inventory_sell_price',
-        {
-          method:"POST",
-          body:JSON.stringify({
-            p_password:dmPassword,
-            p_inventory_id:Number(inventoryId),
-            p_sell_price:sellPrice
-          })
-        }
-      );
-
-    }
-
-
-    await loadDMProfileValues();
-
-
-  }catch(e){
-
-    alert(
-      "Could not save inventory item: "+
-      e.message
-    );
-
-  }
-}
-
-
-async function removeDMInventoryItem(
-  punkId,
-  inventoryId
-){
-
-  if(!confirm("Remove this item from inventory?"))
-    return;
-
-  try{
-
-    await api(
-      '/rpc/set_inventory_quantity',
-      {
-        method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_inventory_id:Number(inventoryId),
-          p_quantity:0
-        })
-      }
-    );
-
-    await loadDMProfileValues();
-
-    }catch(e){
-
-    alert(
-      "Could not remove inventory item: "+
-      e.message
-    );
-
-  }
-}
 
   const dmProfileValues=document.getElementById("dmProfileValues");
 
@@ -2050,7 +2052,6 @@ async function removeDMInventoryItem(
     loadDMProfileValues();
   }
 }
-
   if(ce){
     ce.innerHTML=db.characters.map((x,i)=>
       `<div class="adminItem">
