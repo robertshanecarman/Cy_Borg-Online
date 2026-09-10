@@ -496,7 +496,7 @@ function render(){
 
                 <input
                   id="quickHP"
-                  type="number"
+                  type="text"
                   value="${esc(hp)}"
                   onchange="saveQuickProfileField('hp',this.value)"
                   style="
@@ -518,7 +518,7 @@ function render(){
 
                 <input
                   id="quickArmor"
-                  type="number"
+                  type="text"
                   value="${esc(armor)}"
                   onchange="saveQuickProfileField('armor',this.value)"
                   style="
@@ -1362,9 +1362,9 @@ async function setInventoryQuantity(inventoryId,quantity){
 
     let newValue=value;
 
-    if(field==="hp" || field==="armor"){
-      newValue=value===""?null:Number(value);
-    }
+   if(field==="hp" || field==="armor"){
+  newValue=String(value);
+}
 
     const data={
       ...(existing.data||{}),
