@@ -48,8 +48,15 @@
 <button onclick="show('ASK AI')">ASK AI</button>
 </nav><div id="content"></div></section>
 <section id="dmPage"><div class="dmHeader"><div class="sectionTitle" style="margin:0">DM CONTROL ROOM</div><button class="exit" onclick="exitDM()">RETURN TO INTERNET</button></div><div class="adminGrid">
-<div class="adminBox"><h2>NEWS FLASH!</h2><div class="fields"><div class="field full"><label>Headline</label><input id="newsHeadline"></div><div class="field full"><label>Story</label><textarea id="newsStory"></textarea></div><div class="field full"><label>Pasteboard.co Picture URL</label><input id="newsImg" placeholder="https://pasteboard.co/..."></div></div><button class="save" onclick="saveNews()">PUBLISH NEWS</button></div>
-<div class="adminBox"><h2>RUMOR MILL</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="rumorUser"></div><div class="field"><label>Rumor Title</label><input id="rumorTitle"></div><div class="field full"><label>Rumor</label><textarea id="rumorText"></textarea></div><div class="field full"><label>Picture URL</label><input id="rumorImg"></div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST RUMOR" onclick="saveRumor()">POST RUMOR</button></div><div class="adminList" id="rumorAdmin"></div></div>
+<div class="adminBox"><h2>NEWS FLASH!</h2><div class="fields"><div class="field full"><label>Headline</label><input id="newsHeadline"></div><div class="field full"><label>Story</label><textarea id="newsStory"></textarea></div>
+<div class="field full">
+  <label>News Picture</label>
+  <input id="newsImgFile" type="file" accept="image/*">
+</div></div><button class="save" onclick="saveNews()">PUBLISH NEWS</button></div>
+<div class="adminBox"><h2>RUMOR MILL</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="rumorUser"></div><div class="field"><label>Rumor Title</label><input id="rumorTitle"></div><div class="field full"><label>Rumor</label><textarea id="rumorText"></textarea></div<div class="field full">
+  <label>Rumor Picture</label>
+  <input id="rumorImgFile" type="file" accept="image/*">
+</div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST RUMOR" onclick="saveRumor()">POST RUMOR</button></div><div class="adminList" id="rumorAdmin"></div></div>
 <div class="adminBox"><h2>ODD JOBS</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="jobUser"></div><div class="field"><label>Job Title</label><input id="jobTitle"></div><div class="field full"><label>Description</label><textarea id="jobText"></textarea></div><div class="field"><label>Pay</label><input id="jobPay"></div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST JOB" onclick="saveJob()">POST JOB</button></div><div class="adminList" id="jobAdmin"></div></div>
 <div class="adminBox"><h2>FOR HIRE</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="hireUser"></div><div class="field"><label>Service / Character</label><input id="hireTitle"></div><div class="field full"><label>Description</label><textarea id="hireText"></textarea></div><div class="field"><label>Rate</label><input id="hireRate"></div><div class="field"><label>Availability</label><input id="hireAvail"></div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST FOR-HIRE LISTING" onclick="saveHire()">POST FOR-HIRE LISTING</button></div><div class="adminList" id="hireAdmin"></div></div>
 <div class="adminBox">
@@ -139,6 +146,38 @@ function pasteboardUrl(url){
   }
 
   return url;
+}async function uploadChrImage(file,prefix="image"){
+
+  if(!file)return "";
+
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+
+  const path=
+    prefix+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
+
+  const upload=await fetch(
+    SUPABASE_URL+
+    "/storage/v1/object/chr-online-images/"+
+    encodeURIComponent(path),
+    {
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_KEY,
+        Authorization:"Bearer "+SUPABASE_KEY,
+        "Content-Type":file.type||"image/jpeg"
+      },
+      body:file
+    }
+  );
+
+  if(!upload.ok)
+    throw new Error(await upload.text());
+
+  return (
+    SUPABASE_URL+
+    "/storage/v1/object/public/chr-online-images/"+
+    path
+  );
 }
 const val=id=>(document.getElementById(id)?.value||"").trim(); const clr=id=>{const e=document.getElementById(id);if(e)e.value=""};
 const sections=["News Flash!","My Profile","Rumor Mill","Odd Jobs","For Hire","ASK AI"];let section=sections[0];
@@ -1152,27 +1191,110 @@ function openLogin(){document.getElementById("login").style.display="flex";docum
 function checkLogin(){if(document.getElementById("pass").value==="CY_BORG"){dmPassword=document.getElementById("pass").value;closeLogin();document.getElementById("publicPage").style.display="none";document.getElementById("dmPage").style.display="block";admin()}else document.getElementById("loginErr").textContent="ACCESS DENIED."}function exitDM(){document.getElementById("dmPage").style.display="none";document.getElementById("publicPage").style.display="block";render()}
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
 async function saveNews(){
-  const x={
-    title:val("newsHeadline")||"UNTITLED NEWS",
-    body:val("newsStory"),
-    image_url:pasteboardUrl(val("newsImg"))
-  };
 
   try{
+
+    const file=
+      document.getElementById("newsImgFile")?.files?.[0];
+
+    let image_url=db.news.img||"";
+
+    if(file){
+      image_url=await uploadChrImage(file,"news");
+    }
+
+    const x={
+      title:val("newsHeadline")||"UNTITLED NEWS",
+      body:val("newsStory"),
+      image_url
+    };
+
     await dmCall("update_news",x);
+
+    const input=document.getElementById("newsImgFile");
+    if(input)input.value="";
+
     await loadDB();
+
     alert("NEWS PUBLISHED.");
+
   }catch(e){
+
     alert("DM action failed: "+e.message);
+
   }
 }
 async function saveJob(){let x={username:val("jobUser"),title:val("jobTitle"),description:val("jobText"),pay:val("jobPay")};if(!x.username||!x.title||!x.description)return alert("Username, title, and description are required.");try{await dmCall("add_job",x);["jobUser","jobTitle","jobText","jobPay"].forEach(clr);await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 async function saveHire(){let x={username:val("hireUser"),title:val("hireTitle"),description:val("hireText"),rate:val("hireRate"),availability:val("hireAvail")};if(!x.username||!x.title||!x.description)return alert("Username, service, and description are required.");try{await dmCall("add_hire",x);["hireUser","hireTitle","hireText","hireRate","hireAvail"].forEach(clr);await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 async function remove(type,id){if(!confirm("Delete this?"))return;let map={rumors:"rumor",jobs:"job",hires:"hire",asks:"ask"};try{await dmCall("delete_"+map[type],{id});await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 let editing={type:null,id:null};
-function resetEditor(){editing={type:null,id:null};["rumorUser","rumorTitle","rumorText","rumorImg","jobUser","jobTitle","jobText","jobPay","hireUser","hireTitle","hireText","hireRate","hireAvail"].forEach(clr);document.querySelectorAll(".save").forEach(b=>{if(b.dataset.editable)b.textContent=b.dataset.addText||b.textContent});}
-function edit(type,id){const x=db[type].find(a=>a.id==id);if(!x)return;editing={type,id};if(type==="rumors"){document.getElementById("rumorUser").value=x.user||"";document.getElementById("rumorTitle").value=x.title||"";document.getElementById("rumorText").value=x.text||"";document.getElementById("rumorImg").value=x.img||"";document.querySelector('#rumorUser').closest('.adminBox').querySelector('.save').textContent="SAVE RUMOR"}else if(type==="jobs"){document.getElementById("jobUser").value=x.user||"";document.getElementById("jobTitle").value=x.title||"";document.getElementById("jobText").value=x.text||"";document.getElementById("jobPay").value=x.pay||"";document.querySelector('#jobUser').closest('.adminBox').querySelector('.save').textContent="SAVE JOB"}else{document.getElementById("hireUser").value=x.user||"";document.getElementById("hireTitle").value=x.title||"";document.getElementById("hireText").value=x.text||"";document.getElementById("hireRate").value=x.rate||"";document.getElementById("hireAvail").value=x.avail||"";document.querySelector('#hireUser').closest('.adminBox').querySelector('.save').textContent="SAVE FOR-HIRE"}}
-async function saveRumor(){let x={username:val("rumorUser"),title:val("rumorTitle"),body:val("rumorText"),image_url:pasteboardUrl(val("rumorImg"))};if(!x.username||!x.title||!x.body)return alert("Username, title, and rumor are required.");try{if(editing.type==="rumors")await dmCall("edit_rumor",{id:editing.id,user:x.username,title:x.title,text:x.body,img:x.image_url,image_url:x.image_url});else await dmCall("add_rumor",x);resetEditor();await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
+function resetEditor(){editing={type:null,id:null};["rumorUser","rumorTitle","rumorText",,"jobUser","jobTitle","jobText","jobPay","hireUser","hireTitle","hireText","hireRate","hireAvail"].forEach(clr);document.querySelectorAll(".save").forEach(b=>{if(b.dataset.editable)b.textContent=b.dataset.addText||b.textContent});}
+function edit(type,id){const x=db[type].find(a=>a.id==id);if(!x)return;editing={type,id};if(type==="rumors"){document.getElementById("rumorUser").value=x.user||"";document.getElementById("rumorTitle").value=x.title||"";document.getElementById("rumorText").value=x.text||"";document.querySelector('#rumorUser').closest('.adminBox').querySelector('.save').textContent="SAVE RUMOR"}else if(type==="jobs"){document.getElementById("jobUser").value=x.user||"";document.getElementById("jobTitle").value=x.title||"";document.getElementById("jobText").value=x.text||"";document.getElementById("jobPay").value=x.pay||"";document.querySelector('#jobUser').closest('.adminBox').querySelector('.save').textContent="SAVE JOB"}else{document.getElementById("hireUser").value=x.user||"";document.getElementById("hireTitle").value=x.title||"";document.getElementById("hireText").value=x.text||"";document.getElementById("hireRate").value=x.rate||"";document.getElementById("hireAvail").value=x.avail||"";document.querySelector('#hireUser').closest('.adminBox').querySelector('.save').textContent="SAVE FOR-HIRE"}}
+async function saveRumor(){
+
+  const username=val("rumorUser");
+  const title=val("rumorTitle");
+  const body=val("rumorText");
+
+  if(!username||!title||!body)
+    return alert("Username, title, and rumor are required.");
+
+  try{
+
+    const file=
+      document.getElementById("rumorImgFile")?.files?.[0];
+
+    let image_url="";
+
+    if(editing.type==="rumors"){
+      const existing=db.rumors.find(x=>x.id==editing.id);
+      image_url=existing?.img||"";
+    }
+
+    if(file){
+      image_url=await uploadChrImage(file,"rumor");
+    }
+
+    const x={
+      username,
+      title,
+      body,
+      image_url
+    };
+
+    if(editing.type==="rumors"){
+
+      await dmCall(
+        "edit_rumor",
+        {
+          id:editing.id,
+          user:username,
+          title,
+          text:body,
+          img:image_url,
+          image_url
+        }
+      );
+
+    }else{
+
+      await dmCall("add_rumor",x);
+
+    }
+
+    resetEditor();
+
+    const input=document.getElementById("rumorImgFile");
+    if(input)input.value="";
+
+    await loadDB();
+
+  }catch(e){
+
+    alert("DM action failed: "+e.message);
+
+  }
+}
 async function saveJob(){let x={username:val("jobUser"),title:val("jobTitle"),description:val("jobText"),pay:val("jobPay")};if(!x.username||!x.title||!x.description)return alert("Username, title, and description are required.");try{if(editing.type==="jobs")await dmCall("edit_job",{id:editing.id,user:x.username,title:x.title,text:x.description,pay:x.pay});else await dmCall("add_job",x);resetEditor();await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 async function saveHire(){let x={username:val("hireUser"),title:val("hireTitle"),description:val("hireText"),rate:val("hireRate"),availability:val("hireAvail")};if(!x.username||!x.title||!x.description)return alert("Username, service, and description are required.");try{if(editing.type==="hires")await dmCall("edit_hire",{id:editing.id,user:x.username,title:x.title,text:x.description,rate:x.rate,avail:x.availability});else await dmCall("add_hire",x);resetEditor();await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 async function addCharacter(){let n=val("newChar");if(!n)return;try{await dmCall("add_punk",{name:n,creds:0});clr("newChar");await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
@@ -1907,11 +2029,9 @@ async function removeDMInventoryItem(
 
   const nh=document.getElementById("newsHeadline");
   const ns=document.getElementById("newsStory");
-  const ni=document.getElementById("newsImg");
 
   if(nh)nh.value=db.news.headline||"";
   if(ns)ns.value=db.news.story||"";
-  if(ni)ni.value=db.news.img||"";
 
   const ra=document.getElementById("rumorAdmin");
   const ja=document.getElementById("jobAdmin");
