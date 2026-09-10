@@ -52,7 +52,69 @@
 <div class="adminBox"><h2>RUMOR MILL</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="rumorUser"></div><div class="field"><label>Rumor Title</label><input id="rumorTitle"></div><div class="field full"><label>Rumor</label><textarea id="rumorText"></textarea></div><div class="field full"><label>Picture URL</label><input id="rumorImg"></div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST RUMOR" onclick="saveRumor()">POST RUMOR</button></div><div class="adminList" id="rumorAdmin"></div></div>
 <div class="adminBox"><h2>ODD JOBS</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="jobUser"></div><div class="field"><label>Job Title</label><input id="jobTitle"></div><div class="field full"><label>Description</label><textarea id="jobText"></textarea></div><div class="field"><label>Pay</label><input id="jobPay"></div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST JOB" onclick="saveJob()">POST JOB</button></div><div class="adminList" id="jobAdmin"></div></div>
 <div class="adminBox"><h2>FOR HIRE</h2><div class="fields"><div class="field"><label>Fake Username</label><input id="hireUser"></div><div class="field"><label>Service / Character</label><input id="hireTitle"></div><div class="field full"><label>Description</label><textarea id="hireText"></textarea></div><div class="field"><label>Rate</label><input id="hireRate"></div><div class="field"><label>Availability</label><input id="hireAvail"></div></div><div style="display:flex;gap:8px"><button class="save" data-editable="1" data-add-text="POST FOR-HIRE LISTING" onclick="saveHire()">POST FOR-HIRE LISTING</button></div><div class="adminList" id="hireAdmin"></div></div>
-<div class="adminBox"><h2>CHARACTER USERNAMES</h2><p style="font-size:11px">Edit the names players can select when posting to ASK AI.</p><div class="field"><label>Add Character</label><input id="newChar"></div><button class="save" onclick="addCharacter()">ADD CHARACTER</button><div class="adminList" id="charAdmin"></div></div><div class="adminBox" style="grid-column:1/-1"><h2>ASK AI // DM RESPONSES</h2><div class="adminList" id="askAdmin"></div></div>
+<div class="adminBox">
+  <h2>CHARACTER USERNAMES</h2>
+  <p style="font-size:11px">Edit the names players can select when posting to ASK AI.</p>
+
+  <div class="field">
+    <label>Add Character</label>
+    <input id="newChar">
+  </div>
+
+  <button class="save" onclick="addCharacter()">ADD CHARACTER</button>
+
+  <div class="adminList" id="charAdmin"></div>
+</div>
+
+
+<div class="adminBox">
+
+  <h2>PROFILE SETTINGS</h2>
+
+  <div class="field">
+    <label>Currency Name</label>
+    <input id="currencyLabel" placeholder="CRED">
+  </div>
+
+  <button class="save" onclick="saveCurrencyLabel()">
+    SAVE CURRENCY NAME
+  </button>
+
+
+  <h2 style="margin-top:25px">STAT CATEGORIES</h2>
+
+  <div class="field">
+    <label>New Stat</label>
+    <input id="newStatLabel" placeholder="LUCK">
+  </div>
+
+  <button class="save" onclick="addStatCategory()">
+    ADD STAT
+  </button>
+
+  <div class="adminList" id="statCategoryAdmin"></div>
+
+</div>
+
+
+<div class="adminBox" style="grid-column:1/-1">
+
+  <h2>PUNK PROFILE VALUES</h2>
+
+  <div class="field">
+    <label>Select Punk</label>
+    <select id="dmProfilePunk" onchange="loadDMProfileValues()"></select>
+  </div>
+
+  <div id="dmProfileValues"></div>
+
+</div>
+
+
+<div class="adminBox" style="grid-column:1/-1">
+  <h2>ASK AI // DM RESPONSES</h2>
+  <div class="adminList" id="askAdmin"></div>
+</div>
 </div></section></main><footer> Chr-Online™ // CUSTOM CAMPAIGN SOCIAL MEDIA NETWORK // UPLOAD IMAGES VIA PASTEBOARD.CO // MADE WITH AI</footer>
 <div class="modal" id="login"><div class="modalBox"><h2>DM ONLY</h2><p style="font-size:11px">AUTHORIZED GAME MASTER ACCESS.</p><input id="pass" type="password" placeholder="PASSWORD" onkeydown="if(event.key==='Enter')checkLogin()"><div class="error" id="loginErr"></div><div class="actions"><button class="cancel" onclick="closeLogin()">CANCEL</button><button class="save" onclick="checkLogin()">ENTER</button></div></div></div>
 <script>
@@ -89,6 +151,8 @@ let db={
   characters:[],
   punks:[],
   profile:null,
+  profileSettings:{currency_label:"CRED"},
+  statCategories:[],
 };
 let dmPassword="";
 let selectedProfilePunk=localStorage.getItem("chrProfilePunk")||"";
@@ -96,14 +160,18 @@ async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
-try{const [n,r,j,h,a,p]=await Promise.all([
+try{const [n,r,j,h,a,p,ps,sc]=await Promise.all([
   api('/news?select=*&order=id.desc&limit=1'),
   api('/rumors?select=*&order=created_at.desc'),
   api('/odd_jobs?select=*&order=created_at.desc'),
   api('/for_hire?select=*&order=created_at.desc'),
   api('/ask_ai?select=*&order=created_at.asc'),
-  api('/punks?select=id,name,creds&order=id.asc')
-]);db.news=n[0]?{headline:n[0].headline||"",story:n[0].story||"",img:n[0].image_url||""}:{headline:"",story:"",img:""};db.rumors=r.map(x=>({id:x.id,user:x.username,title:x.title,text:x.body,img:x.image_url||""}));db.jobs=j.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,pay:x.pay||""}));db.hires=h.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,rate:x.rate||"",avail:x.availability||""}));db.asks=a.map(x=>({id:x.id,player:x.player_username,question:x.question,answer:x.answer||"",createdAt:x.created_at}));db.punks=p;
+  api('/punks?select=id,name,creds&order=id.asc'),
+  api('/campaign_profile_settings?select=*&id=eq.1&limit=1'),
+  api('/profile_stat_categories?select=*&order=sort_order.asc,id.asc')
+]);
+db.news=n[0]?{headline:n[0].headline||"",story:n[0].story||"",img:n[0].image_url||""}:{headline:"",story:"",img:""};db.rumors=r.map(x=>({id:x.id,user:x.username,title:x.title,text:x.body,img:x.image_url||""}));db.jobs=j.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,pay:x.pay||""}));db.hires=h.map(x=>({id:x.id,user:x.username,title:x.title,text:x.description,rate:x.rate||"",avail:x.availability||""}));db.asks=a.map(x=>({id:x.id,player:x.player_username,question:x.question,answer:x.answer||"",createdAt:x.created_at}));db.punks=p;db.profileSettings=ps?.[0]||{currency_label:"CRED"};
+db.statCategories=sc||[];
 db.characters=p.map(x=>x.name);
 nav();
 
@@ -506,11 +574,11 @@ function render(){
     </div>
 
 
-    <div class="sectionTitle">CRED</div>
+    <div class="sectionTitle">${esc(db.profileSettings?.currency_label||"CRED")}</div>
 
     <article class="card" style="margin-bottom:24px">
 
-      <span class="label">CRED</span>
+      <span class="label">${esc(db.profileSettings?.currency_label||"CRED")}</span>
 
       <h3 style="font-size:28px">
         ${esc(punk.creds??0)}
@@ -525,13 +593,37 @@ function render(){
 
     <div class="sectionTitle">STATS</div>
 
-    <div id="profileStats">
+<div id="profileStats" class="grid">
+  ${
+    db.statCategories.length
+    ? db.statCategories.map(stat=>{
 
-      <div class="empty">
-        NO CUSTOM STATS CONFIGURED YET.
-      </div>
+        const value=profileData.stats?.[stat.id]??"";
 
-    </div>
+        return `
+          <article class="card">
+            <span class="label">${esc(stat.label)}</span>
+
+            <input
+              value="${esc(value)}"
+              onchange="saveProfileStat(${stat.id},this.value)"
+              placeholder="—"
+              style="
+                width:100%;
+                margin-top:10px;
+                background:#fffdf4;
+                border:2px solid var(--ink);
+                padding:10px;
+                font:700 20px 'Space Grotesk';
+              "
+            >
+          </article>
+        `;
+
+      }).join("")
+    : '<div class="empty">NO CUSTOM STATS CONFIGURED YET.</div>'
+  }
+</div>
 
 
     <div class="sectionTitle" style="margin-top:26px">
@@ -680,6 +772,59 @@ function cancelProfileEdit(){
 
   if(display)display.style.display="block";
   if(editor)editor.style.display="none";
+}async function saveProfileStat(statId,value){
+
+  const punkId=selectedProfilePunk;
+  if(!punkId)return;
+
+  try{
+
+    const existing=db.profile||{
+      punk_id:Number(punkId),
+      handle:"",
+      about_me:"",
+      image_url:"",
+      data:{}
+    };
+
+    const stats={
+      ...(existing.data?.stats||{}),
+      [statId]:value
+    };
+
+    const data={
+      ...(existing.data||{}),
+      stats
+    };
+
+    const payload={
+      punk_id:Number(punkId),
+      handle:existing.handle||"",
+      about_me:existing.about_me||"",
+      image_url:existing.image_url||"",
+      data,
+      template_id:existing.template_id||null
+    };
+
+    const result=await api(
+      '/punk_profiles?on_conflict=punk_id',
+      {
+        method:"POST",
+        headers:{
+          Prefer:"resolution=merge-duplicates,return=representation"
+        },
+        body:JSON.stringify(payload)
+      }
+    );
+
+    db.profile=result?.[0]||{
+      ...existing,
+      data
+    };
+
+  }catch(e){
+    alert("Could not save stat: "+e.message);
+  }
 }async function saveQuickProfileField(field,value){
 
   const punkId=selectedProfilePunk;
@@ -870,8 +1015,386 @@ async function addCharacter(){let n=val("newChar");if(!n)return;try{await dmCall
 }
 async function answer(id){let x=db.asks.find(a=>a.id==id),a=prompt("AI RESPONSE:",x.answer||"");if(a!==null)try{await dmCall("answer_ask",{id,answer:a});await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 function row(type,x,label){return `<div class="adminItem"><span>${esc(label)}</span><span><button class="small" onclick="edit('${type}',${x.id})">EDIT</button> <button class="small delete" onclick="remove('${type}',${x.id})">X</button></span></div>`}
-function admin(){
-  const ce=document.getElementById("charAdmin");
+async function saveCurrencyLabel(){
+
+  const label=val("currencyLabel")||"CRED";
+
+  try{
+
+    await api(
+      '/campaign_profile_settings?id=eq.1',
+      {
+        method:"PATCH",
+        headers:{
+          Prefer:"return=representation"
+        },
+        body:JSON.stringify({
+          currency_label:label,
+          updated_at:new Date().toISOString()
+        })
+      }
+    );
+
+    db.profileSettings.currency_label=label;
+
+    alert("CURRENCY NAME SAVED.");
+
+  }catch(e){
+    alert("Could not save currency name: "+e.message);
+  }
+}
+
+
+async function addStatCategory(){
+
+  const label=val("newStatLabel");
+  if(!label)return;
+
+  try{
+
+    const nextOrder=
+      db.statCategories.length
+      ? Math.max(...db.statCategories.map(x=>Number(x.sort_order)||0))+10
+      : 10;
+
+    await api(
+      '/profile_stat_categories',
+      {
+        method:"POST",
+        headers:{
+          Prefer:"return=representation"
+        },
+        body:JSON.stringify({
+          label,
+          sort_order:nextOrder
+        })
+      }
+    );
+
+    clr("newStatLabel");
+
+    await refreshProfileConfig();
+
+  }catch(e){
+    alert("Could not add stat: "+e.message);
+  }
+}
+
+
+async function renameStatCategory(id){
+
+  const stat=db.statCategories.find(x=>x.id==id);
+  if(!stat)return;
+
+  const label=prompt("STAT NAME:",stat.label);
+
+  if(label===null || !label.trim())return;
+
+  try{
+
+    await api(
+      '/profile_stat_categories?id=eq.'+encodeURIComponent(id),
+      {
+        method:"PATCH",
+        body:JSON.stringify({
+          label:label.trim()
+        })
+      }
+    );
+
+    await refreshProfileConfig();
+
+  }catch(e){
+    alert("Could not rename stat: "+e.message);
+  }
+}
+
+
+async function deleteStatCategory(id){
+
+  const stat=db.statCategories.find(x=>x.id==id);
+  if(!stat)return;
+
+  if(!confirm("Remove "+stat.label+" from all profiles?"))
+    return;
+
+  try{
+
+    await api(
+      '/profile_stat_categories?id=eq.'+encodeURIComponent(id),
+      {
+        method:"DELETE"
+      }
+    );
+
+    await refreshProfileConfig();
+
+  }catch(e){
+    alert("Could not remove stat: "+e.message);
+  }
+}
+
+
+async function refreshProfileConfig(){
+
+  try{
+
+    const [ps,sc]=await Promise.all([
+      api('/campaign_profile_settings?select=*&id=eq.1&limit=1'),
+      api('/profile_stat_categories?select=*&order=sort_order.asc,id.asc')
+    ]);
+
+    db.profileSettings=ps?.[0]||{currency_label:"CRED"};
+    db.statCategories=sc||[];
+
+    admin();
+
+  }catch(e){
+    console.error("PROFILE CONFIG ERROR:",e);
+  }
+}async function loadDMProfileValues(){
+
+  const select=document.getElementById("dmProfilePunk");
+  const target=document.getElementById("dmProfileValues");
+
+  if(!select||!target)return;
+
+  const punkId=select.value;
+
+  if(!punkId){
+    target.innerHTML="";
+    return;
+  }
+
+  try{
+
+    const rows=await api(
+      '/punk_profiles?select=*&punk_id=eq.'+
+      encodeURIComponent(punkId)+
+      '&limit=1'
+    );
+
+    const profile=rows?.[0]||{data:{}};
+    const data=profile.data||{};
+
+    const punk=db.punks.find(x=>String(x.id)===String(punkId));
+
+    target.innerHTML=`
+
+      <div class="fields">
+
+        <div class="field">
+          <label>HP</label>
+          <input id="dmProfileHP"
+            type="number"
+            value="${esc(data.hp??"")}">
+        </div>
+
+        <div class="field">
+          <label>Armor</label>
+          <input id="dmProfileArmor"
+            type="number"
+            value="${esc(data.armor??"")}">
+        </div>
+
+        <div class="field">
+          <label>${esc(db.profileSettings?.currency_label||"CRED")}</label>
+          <input id="dmProfileCreds"
+            type="number"
+            value="${esc(punk?.creds??0)}">
+        </div>
+
+      </div>
+
+
+      <div style="margin-top:10px">
+
+        ${
+          db.statCategories.map(stat=>`
+
+            <div class="field">
+
+              <label>${esc(stat.label)}</label>
+
+              <input
+                id="dmStat_${stat.id}"
+                value="${esc(data.stats?.[stat.id]??"")}">
+
+            </div>
+
+          `).join("")
+        }
+
+      </div>
+
+
+      <button class="save"
+        onclick="saveDMProfileValues(${Number(punkId)})">
+        SAVE PUNK PROFILE
+      </button>
+
+    `;
+
+  }catch(e){
+
+    target.innerHTML=
+      "<div class='error'>PROFILE COULD NOT BE LOADED.</div>";
+
+  }
+}
+
+
+async function saveDMProfileValues(punkId){
+
+  try{
+
+    const rows=await api(
+      '/punk_profiles?select=*&punk_id=eq.'+
+      encodeURIComponent(punkId)+
+      '&limit=1'
+    );
+
+    const existing=rows?.[0]||{
+      punk_id:Number(punkId),
+      handle:"",
+      about_me:"",
+      image_url:"",
+      data:{}
+    };
+
+    const stats={
+      ...(existing.data?.stats||{})
+    };
+
+    db.statCategories.forEach(stat=>{
+      stats[stat.id]=val("dmStat_"+stat.id);
+    });
+
+
+    const data={
+      ...(existing.data||{}),
+
+      hp:val("dmProfileHP")===""
+        ?null
+        :Number(val("dmProfileHP")),
+
+      armor:val("dmProfileArmor")===""
+        ?null
+        :Number(val("dmProfileArmor")),
+
+      stats
+    };
+
+
+    await api(
+      '/punk_profiles?on_conflict=punk_id',
+      {
+        method:"POST",
+        headers:{
+          Prefer:"resolution=merge-duplicates,return=representation"
+        },
+        body:JSON.stringify({
+          punk_id:Number(punkId),
+          handle:existing.handle||"",
+          about_me:existing.about_me||"",
+          image_url:existing.image_url||"",
+          data,
+          template_id:existing.template_id||null
+        })
+      }
+    );
+
+
+    const creds=Number(val("dmProfileCreds")||0);
+
+    await api(
+      '/punks?id=eq.'+encodeURIComponent(punkId),
+      {
+        method:"PATCH",
+        body:JSON.stringify({
+          creds
+        })
+      }
+    );
+
+
+    const punk=db.punks.find(x=>x.id==punkId);
+
+    if(punk)
+      punk.creds=creds;
+
+
+    alert("PUNK PROFILE SAVED.");
+
+  }catch(e){
+
+    alert("Could not save Punk profile: "+e.message);
+
+  }
+}function admin(){
+  const ce=document.getElementById("charAdmin");const currencyInput=document.getElementById("currencyLabel");
+
+if(currencyInput){
+  currencyInput.value=
+    db.profileSettings?.currency_label||"CRED";
+}
+
+
+const statAdmin=document.getElementById("statCategoryAdmin");
+
+if(statAdmin){
+
+  statAdmin.innerHTML=
+    db.statCategories.length
+    ?db.statCategories.map(stat=>`
+
+      <div class="adminItem">
+
+        <span>${esc(stat.label)}</span>
+
+        <span>
+
+          <button
+            class="small"
+            onclick="renameStatCategory(${stat.id})">
+            EDIT
+          </button>
+
+          <button
+            class="small delete"
+            onclick="deleteStatCategory(${stat.id})">
+            X
+          </button>
+
+        </span>
+
+      </div>
+
+    `).join("")
+    :"<div style='padding:15px;color:#777'>NO STATS CONFIGURED.</div>";
+}
+
+
+const punkSelect=document.getElementById("dmProfilePunk");
+
+if(punkSelect){
+
+  const oldValue=punkSelect.value;
+
+  punkSelect.innerHTML=
+    db.punks.map(p=>
+      `<option value="${p.id}">${esc(p.name)}</option>`
+    ).join("");
+
+  if(
+    oldValue &&
+    [...punkSelect.options].some(o=>o.value===oldValue)
+  ){
+    punkSelect.value=oldValue;
+  }
+
+  loadDMProfileValues();
+}
 
   if(ce){
     ce.innerHTML=db.characters.map((x,i)=>
