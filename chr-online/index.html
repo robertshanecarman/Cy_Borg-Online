@@ -697,20 +697,20 @@ function render(){
 
   ${
     db.inventory.filter(item=>
+  item.equipped &&
+  ["weapons","armor","mods"].includes(
+    inventoryCategory(item)
+  )
+).length
+
+? `<div class="grid">
+
+    ${db.inventory.filter(item=>
       item.equipped &&
       ["weapons","armor","mods"].includes(
-        String(item.store_listings?.category||"").toLowerCase()
+        inventoryCategory(item)
       )
-    ).length
-
-    ? `<div class="grid">
-
-        ${db.inventory.filter(item=>
-          item.equipped &&
-          ["weapons","armor","mods"].includes(
-            String(item.store_listings?.category||"").toLowerCase()
-          )
-        ).map(item=>`
+    ).map(item=>`
 
           <article class="card">
 
@@ -757,14 +757,14 @@ function render(){
 
   ${
     db.inventory.filter(item=>
-      String(item.store_listings?.category||"").toLowerCase()!=="apps"
-    ).length
+  inventoryCategory(item)!=="apps"
+).length
 
-    ? `<div class="grid">
+? `<div class="grid">
 
-        ${db.inventory.filter(item=>
-          String(item.store_listings?.category||"").toLowerCase()!=="apps"
-        ).map(item=>`
+    ${db.inventory.filter(item=>
+      inventoryCategory(item)!=="apps"
+    ).map(item=>`
 
           <article class="card">
 
@@ -821,7 +821,7 @@ ${
 
 ${
   ["weapons","armor","mods"].includes(
-    String(item.store_listings?.category||"").toLowerCase()
+    inventoryCategory(item)
   )
 
   ? `<button
@@ -865,7 +865,16 @@ ${
         placeholder="Found item, weapon, key, gear..."
       >
     </div>
-
+<div class="field">
+  <label>Item Type</label>
+  <select id="manualInventoryCategory">
+    <option value="Gear">Gear / Other</option>
+    <option value="Weapons">Weapon</option>
+    <option value="Armor">Armor</option>
+    <option value="Mods">Mod</option>
+    <option value="Apps">App / Ability</option>
+  </select>
+</div>
     <div class="field">
       <label>Quantity</label>
       <input
@@ -896,18 +905,18 @@ ${
 
   ${
     (
-      db.inventory.some(item=>
-        String(item.store_listings?.category||"").toLowerCase()==="apps"
-      )
-      ||
-      db.abilities.length
-    )
+     db.inventory.some(item=>
+  inventoryCategory(item)==="apps"
+)
+||
+db.abilities.length
+)
 
-    ? `<div class="grid">
+? `<div class="grid">
 
-        ${db.inventory.filter(item=>
-          String(item.store_listings?.category||"").toLowerCase()==="apps"
-        ).map(item=>`
+    ${db.inventory.filter(item=>
+      inventoryCategory(item)==="apps"
+    ).map(item=>`
 
           <article class="card">
 
@@ -1373,17 +1382,18 @@ const manualCategory=
 
   try{
 
-    const result=await api(
-      '/rpc/add_manual_inventory_item',
-      {
-        method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_name:name,
-          p_quantity:quantity
-        })
-      }
-    );
+const result=await api(
+  '/rpc/add_manual_inventory_item',
+  {
+    method:"POST",
+    body:JSON.stringify({
+      p_punk_id:Number(punkId),
+      p_name:name,
+      p_quantity:quantity,
+      p_manual_category:manualCategory
+    })
+  }
+);
 
     console.log("ADD INVENTORY RESULT:",result);
 
