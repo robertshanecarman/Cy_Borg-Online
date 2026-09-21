@@ -1153,22 +1153,33 @@ ${
       </span>
 
       <div class="field" style="margin-top:12px">
-        <label>Item Name</label>
-        <input
-          id="manualInventoryName"
-          placeholder="Found item, weapon, key, gear..."
-        >
-      </div>
+  <label>Item Name</label>
+  <input
+    id="manualInventoryName"
+    placeholder="Found item, weapon, key, gear..."
+  >
+</div>
 
-      <div class="field">
-        <label>Quantity</label>
-        <input
-          id="manualInventoryQuantity"
-          type="number"
-          min="1"
-          value="1"
-        >
-      </div>
+<div class="field">
+  <label>Item Type</label>
+  <select id="manualInventoryCategory">
+    <option value="Gear">Gear / Other</option>
+    <option value="Weapons">Weapon</option>
+    <option value="Armor">Armor</option>
+    <option value="Mods">Mod</option>
+    <option value="Apps">App / Ability</option>
+  </select>
+</div>
+
+<div class="field">
+  <label>Quantity</label>
+  <input
+    id="manualInventoryQuantity"
+    type="number"
+    min="1"
+    value="1"
+  >
+</div>
 
       <button
         class="save"
@@ -1335,7 +1346,10 @@ function cancelProfileEdit(){
   }
 
   const name=val("manualInventoryName");
-
+    
+const manualCategory=
+  val("manualInventoryCategory") || "Gear";
+    
   const quantity=Math.max(
     1,
     Math.floor(Number(val("manualInventoryQuantity")||1))
@@ -2578,11 +2592,12 @@ async function saveDMProfileValues(punkId){
       '/rpc/add_manual_inventory_item',
       {
         method:"POST",
-        body:JSON.stringify({
-          p_punk_id:Number(punkId),
-          p_name:name,
-          p_quantity:quantity
-        })
+       body:JSON.stringify({
+  p_punk_id:Number(punkId),
+  p_name:name,
+  p_quantity:quantity,
+  p_manual_category:manualCategory
+})
       }
     );
 
