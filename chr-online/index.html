@@ -236,24 +236,7 @@ db.statCategories=sc||[];
 db.characters=p.map(x=>x.name);
 nav();
 
-if(section==="My Profile"){
-
-  if(selectedProfilePunk && db.profile){
-
-    loadInventory(selectedProfilePunk).then(()=>{
-
-      const inventoryArea=
-        document.getElementById("profileInventory");
-
-      if(inventoryArea){
-        refreshProfileInventory();
-      }
-
-    });
-
-  }
-
-}else{
+if(section!=="My Profile"){
 
   render();
 
@@ -855,14 +838,6 @@ ${
   : ""
 }
 
-<button
-  class="small delete"
-  style="margin-top:6px"
-  onclick="removePlayerInventoryItem(${item.id})"
->
-  REMOVE ITEM
-</button>
-
 </article>
 
           </article>
@@ -1279,6 +1254,8 @@ async function loadInventory(punkId){
 );
 
     db.inventory=rows||[];
+
+console.log("INVENTORY DATA:",db.inventory);
 
   }catch(e){
 
