@@ -221,6 +221,12 @@ async function api(path,opts={}){
 async function loadDB(){
 const draftQuestion=document.getElementById("question")?.value||"";
 const draftPlayer=document.getElementById("askPlayer")?.value||"";
+
+const draftNewsHeadline=
+  document.getElementById("newsHeadline")?.value;
+
+const draftNewsStory=
+  document.getElementById("newsStory")?.value;
 try{const [n,r,j,h,a,p,ps,sc]=await Promise.all([
   api('/news?select=*&order=id.desc&limit=1'),
   api('/rumors?select=*&order=created_at.desc'),
@@ -243,6 +249,18 @@ if(section!=="My Profile"){
 }
 
 admin();
+
+const newsHeadline=document.getElementById("newsHeadline");
+const newsStory=document.getElementById("newsStory");
+
+if(newsHeadline && draftNewsHeadline!==undefined){
+  newsHeadline.value=draftNewsHeadline;
+}
+
+if(newsStory && draftNewsStory!==undefined){
+  newsStory.value=draftNewsStory;
+}
+
 const nq=document.getElementById("question"),np=document.getElementById("askPlayer");
 if(nq && draftQuestion)nq.value=draftQuestion;
 if(np && draftPlayer && [...np.options].some(o=>o.value===draftPlayer))np.value=draftPlayer;
