@@ -1253,6 +1253,17 @@ function openProfile(punkId){
   localStorage.setItem("chrProfilePunk",selectedProfilePunk);
   loadProfile(punkId);
 }
+  
+function inventoryCategory(item){
+
+  return String(
+    item.store_listings?.category ||
+    item.manual_category ||
+    "Gear"
+  ).toLowerCase();
+
+}
+
 async function loadInventory(punkId){
 
   try{
