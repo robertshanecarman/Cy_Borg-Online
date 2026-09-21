@@ -191,8 +191,9 @@ let db={
   punks:[],
   profile:null,
   profileSettings:{currency_label:"CRED"},
-  statCategories:[],
-  inventory:[],
+ statCategories:[],
+inventory:[],
+abilities:[],
 };
 let dmPassword="";
 let selectedProfilePunk=localStorage.getItem("chrProfilePunk")||"";
@@ -772,11 +773,15 @@ function render(){
 <div id="profileInventory">
 
   ${
-    db.inventory.length
+    db.inventory.filter(item=>
+      String(item.store_listings?.category||"").toLowerCase()!=="apps"
+    ).length
 
     ? `<div class="grid">
 
-        ${db.inventory.map(item=>`
+        ${db.inventory.filter(item=>
+          String(item.store_listings?.category||"").toLowerCase()!=="apps"
+        ).map(item=>`
 
           <article class="card">
 
@@ -908,9 +913,143 @@ ${
 </div>
 
 
-    <div class="sectionTitle" style="margin-top:26px">
-      NOTES
+<div class="sectionTitle" style="margin-top:26px">
+  ABILITIES
+</div>
+
+<div id="profileAbilities">
+
+  ${
+    (
+      db.inventory.some(item=>
+        String(item.store_listings?.category||"").toLowerCase()==="apps"
+      )
+      ||
+      db.abilities.length
+    )
+
+    ? `<div class="grid">
+
+        ${db.inventory.filter(item=>
+          String(item.store_listings?.category||"").toLowerCase()==="apps"
+        ).map(item=>`
+
+          <article class="card">
+
+            <span class="label">APP</span>
+
+            <h3>${esc(item.name)}</h3>
+
+            <textarea
+              id="invMechanics_${item.id}"
+              placeholder="Mechanics / rules notes..."
+              onblur="saveInventoryMechanics(${item.id})"
+              style="
+                width:100%;
+                min-height:60px;
+                resize:vertical;
+                background:transparent;
+                border:0;
+                outline:0;
+                padding:0;
+                color:var(--blue);
+                font:600 11px 'IBM Plex Mono';
+                line-height:1.45;
+              "
+            >${esc(item.mechanics||"")}</textarea>
+
+          </article>
+
+        `).join("")}
+
+
+        ${db.abilities.map(ability=>`
+
+          <article class="card">
+
+            <span class="label">CUSTOM ABILITY</span>
+
+            <h3>${esc(ability.name)}</h3>
+
+            <textarea
+              id="abilityMechanics_${ability.id}"
+              placeholder="Mechanics / description..."
+              onblur="saveAbility(${ability.id})"
+              style="
+                width:100%;
+                min-height:60px;
+                resize:vertical;
+                background:transparent;
+                border:0;
+                outline:0;
+                padding:0;
+                color:var(--blue);
+                font:600 11px 'IBM Plex Mono';
+                line-height:1.45;
+              "
+            >${esc(ability.mechanics||"")}</textarea>
+
+            <button
+              class="small delete"
+              style="margin-top:10px"
+              onclick="removeAbility(${ability.id})"
+            >
+              REMOVE ABILITY
+            </button>
+
+          </article>
+
+        `).join("")}
+
+      </div>`
+
+    : `<div class="empty">
+         NO ABILITIES.
+       </div>`
+  }
+
+
+  <div class="card" style="margin-top:18px">
+
+    <span class="label">
+      ADD ABILITY
+    </span>
+
+    <div class="field" style="margin-top:12px">
+      <label>Ability Name</label>
+
+      <input
+        id="newAbilityName"
+        placeholder="Ability name..."
+      >
     </div>
+
+    <div class="field">
+
+      <label>Mechanics / Description</label>
+
+      <textarea
+        id="newAbilityMechanics"
+        placeholder="What does this ability do?"
+      ></textarea>
+
+    </div>
+
+    <button
+      class="save"
+      onclick="addAbility()"
+    >
+      ADD ABILITY
+    </button>
+
+  </div>
+
+</div>
+
+
+<div class="sectionTitle" style="margin-top:26px">
+  NOTES
+</div>
 
     <div class="card">
 
@@ -1147,6 +1286,25 @@ async function loadInventory(punkId){
     db.inventory=[];
 
   }
+} async function loadAbilities(punkId){
+
+  try{
+
+    const rows=await api(
+      '/punk_abilities?select=*&punk_id=eq.'+
+      encodeURIComponent(punkId)+
+      '&order=name.asc'
+    );
+
+    db.abilities=rows||[];
+
+  }catch(e){
+
+    console.error("ABILITY LOAD ERROR:",e);
+    db.abilities=[];
+
+  }
+
 }
 async function loadProfile(punkId){
   selectedProfilePunk=String(punkId);
@@ -1166,9 +1324,12 @@ async function loadProfile(punkId){
     db.profile=null;
   }
 
-  await loadInventory(punkId);
+  await Promise.all([
+  loadInventory(punkId),
+  loadAbilities(punkId)
+]);
 
-  render();
+render();
 }
 
 
@@ -1242,6 +1403,140 @@ function cancelProfileEdit(){
     );
 
   }
+} async function addAbility(){
+
+  const punkId=selectedProfilePunk;
+
+  if(!punkId)return;
+
+  const name=val("newAbilityName");
+  const mechanics=val("newAbilityMechanics");
+
+  if(!name){
+    alert("ENTER AN ABILITY NAME.");
+    return;
+  }
+
+  try{
+
+    await api(
+      '/punk_abilities',
+      {
+        method:"POST",
+        headers:{
+          Prefer:"return=representation"
+        },
+        body:JSON.stringify({
+          punk_id:Number(punkId),
+          name,
+          mechanics
+        })
+      }
+    );
+
+    await loadAbilities(punkId);
+
+    render();
+
+  }catch(e){
+
+    alert(
+      "Could not add ability: "+
+      e.message
+    );
+
+  }
+
+}
+
+
+async function saveAbility(abilityId){
+
+  const ability=db.abilities.find(
+    x=>x.id==abilityId
+  );
+
+  if(!ability)return;
+
+  const mechanics=
+    document.getElementById(
+      "abilityMechanics_"+abilityId
+    )?.value||"";
+
+  try{
+
+    await api(
+      '/punk_abilities?id=eq.'+
+      encodeURIComponent(abilityId),
+      {
+        method:"PATCH",
+        headers:{
+          Prefer:"return=representation"
+        },
+        body:JSON.stringify({
+          mechanics,
+          updated_at:new Date().toISOString()
+        })
+      }
+    );
+
+    ability.mechanics=mechanics;
+
+  }catch(e){
+
+    alert(
+      "Could not save ability: "+
+      e.message
+    );
+
+  }
+
+}
+
+
+async function removeAbility(abilityId){
+
+  const punkId=selectedProfilePunk;
+
+  if(!punkId)return;
+
+  const ability=db.abilities.find(
+    x=>x.id==abilityId
+  );
+
+  if(!ability)return;
+
+  if(!confirm(
+    "Remove "+ability.name+"?"
+  )){
+    return;
+  }
+
+  try{
+
+    await api(
+      '/punk_abilities?id=eq.'+
+      encodeURIComponent(abilityId)+
+      '&punk_id=eq.'+
+      encodeURIComponent(punkId),
+      {
+        method:"DELETE"
+      }
+    );
+
+    await loadAbilities(punkId);
+
+    render();
+
+  }catch(e){
+
+    alert(
+      "Could not remove ability: "+
+      e.message
+    );
+
+  }
+
 }
 async function saveInventoryMechanics(inventoryId){
 
