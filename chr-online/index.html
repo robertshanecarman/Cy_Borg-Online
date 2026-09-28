@@ -1903,11 +1903,12 @@ const file=document.getElementById("profileImage")?.files?.[0];
 }
 
 await api(
-  '/punks?id=eq.'+encodeURIComponent(punkId),
+  '/rpc/rename_punk',
   {
-    method:"PATCH",
+    method:"POST",
     body:JSON.stringify({
-      name:characterName.trim()
+      p_punk_id:Number(punkId),
+      p_new_name:characterName.trim()
     })
   }
 );
