@@ -17,7 +17,33 @@ radial-gradient(circle at 15% 10%,rgba(0,240,255,.06),transparent 25%),
 radial-gradient(circle at 85% 80%,rgba(255,46,166,.05),transparent 30%),var(--bg);
 color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh}
 header{border-bottom:2px solid var(--acid);padding:18px 24px;background:#0b0d10;position:sticky;top:0;z-index:5}
-.brand{display:flex;justify-content:space-between;gap:20px;align-items:center}.logo{font:42px 'VT323';color:var(--acid);text-shadow:3px 3px 0 #293300;letter-spacing:2px}
+.brand{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+
+.logoRow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brandIcon{
+  width:52px;
+  height:52px;
+  object-fit:contain;
+  flex-shrink:0;
+  filter:drop-shadow(0 0 6px rgba(198,255,0,.35));
+}
+
+.logo{
+  font:42px 'VT323';
+  color:var(--acid);
+  text-shadow:3px 3px 0 #293300;
+  letter-spacing:2px;
+}
 .status{color:var(--pink);font-size:12px}.wallet{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.select{background:#090b0e;color:var(--cyan);border:1px solid var(--cyan);padding:10px;font-family:inherit}
 main{max-width:1250px;margin:auto;padding:24px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
 button,.tab{font-family:inherit;cursor:pointer}.tab{background:var(--panel);color:var(--muted);border:1px solid var(--border);padding:11px 15px;text-transform:uppercase}
@@ -41,7 +67,13 @@ footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
 <body>
 <header>
   <div class="brand">
-    <div><div class="logo">CY_DEEP // BLACK MARKET</div><div class="status">UNLICENSED • UNREGULATED • PROBABLY ILLEGAL</div></div>
+    <div>
+  <div class="logoRow">
+    <img src="cydeep-logo.png" class="brandIcon" alt="CY_DEEP Logo">
+    <div class="logo">CY_DEEP // BLACK MARKET</div>
+  </div>
+  <div class="status">UNLICENSED • UNREGULATED • PROBABLY ILLEGAL</div>
+</div>
     <div class="wallet">
       <label for="punkSelect">PUNK:</label>
       <select id="punkSelect" class="select"></select>
