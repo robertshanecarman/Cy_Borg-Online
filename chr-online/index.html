@@ -59,7 +59,21 @@ body.dark-mode{
   --line:#5d5e5b;
 }
 
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(rgba(33,76,122,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(33,76,122,.035) 1px,transparent 1px),var(--bg);background-size:24px 24px;color:var(--ink);font-family:'IBM Plex Mono',monospace}header{background:var(--paper);border-bottom:4px solid var(--ink);padding:20px 25px}.top{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}.logo{font:700 48px 'Space Grotesk';letter-spacing:-3px}.logo span{color:var(--orange)}.tag{font-size:12px;color:var(--blue);font-weight:600}.dmBtn{background:var(--ink);color:#fff;border:0;padding:12px 15px;font:600 12px 'IBM Plex Mono';cursor:pointer;box-shadow:3px 3px 0 var(--orange)}main{max-width:1200px;margin:auto;padding:24px}.nav{display:flex;flex-wrap:wrap;border:2px solid var(--ink);background:var(--paper);margin-bottom:22px}.nav button{
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(rgba(33,76,122,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(33,76,122,.035) 1px,transparent 1px),var(--bg);background-size:24px 24px;color:var(--ink);font-family:'IBM Plex Mono',monospace}header{background:var(--paper);border-bottom:4px solid var(--ink);padding:20px 25px}.top{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}.logo{font:700 48px 'Space Grotesk';letter-spacing:-3px}.logo span{color:var(--orange)}.tag{font-size:12px;color:var(--blue);font-weight:600}.dmBtn{
+  background:var(--ink);
+  color:var(--paper);
+  border:0;
+  padding:12px 15px;
+  font:600 12px 'IBM Plex Mono';
+  cursor:pointer;
+  box-shadow:3px 3px 0 var(--orange);
+}
+
+body.dark-mode .dmBtn{
+  background:var(--paper);
+  color:var(--ink);
+  border:2px solid var(--ink);
+}main{max-width:1200px;margin:auto;padding:24px}.nav{display:flex;flex-wrap:wrap;border:2px solid var(--ink);background:var(--paper);margin-bottom:22px}.nav button{
   flex:1;
   min-width:130px;
   padding:14px 10px;
