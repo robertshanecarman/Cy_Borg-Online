@@ -61,8 +61,14 @@ button,.tab{font-family:inherit;cursor:pointer}.tab{background:var(--panel);colo
 .adminBox h2{color:var(--acid);font:26px 'VT323';margin:0 0 12px}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field.full{grid-column:1/-1}.field label{font-size:10px;color:var(--muted);text-transform:uppercase}.field input,.field textarea,.field select{width:100%;background:#080a0d;color:var(--text);border:1px solid var(--border);padding:9px;font:12px 'Share Tech Mono'}.field textarea{min-height:75px;resize:vertical}.adminList{max-height:430px;overflow:auto;border-top:1px solid var(--border);margin-top:10px}.adminItem{padding:10px 0;border-bottom:1px solid #27302e;display:flex;justify-content:space-between;gap:10px;font-size:12px}.smallbtn{background:#1a2026;color:var(--cyan);border:1px solid var(--cyan);padding:6px 8px}.save{background:var(--acid);color:#111;border:0;padding:10px 14px;font-weight:bold}.logout{background:var(--pink);color:#fff;border:0;padding:9px 12px}
 footer{padding:30px 24px;color:#50605c;text-align:center;font-size:10px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:20}.modalbox{width:min(420px,90vw);background:var(--panel);border:1px solid var(--acid);padding:20px}.modalbox h2{color:var(--acid);font:30px 'VT323';margin-top:0}.modalbox input{width:100%;padding:12px;background:#080a0d;color:white;border:1px solid var(--border);font-family:inherit;margin-bottom:12px}.modal-actions{display:flex;justify-content:flex-end;gap:8px}.cancel{background:#22272d;color:#aaa;border:1px solid #444;padding:9px}.error{color:var(--red);font-size:11px;min-height:15px}
-@media(max-width:800px){.adminGrid{grid-template-columns:1fr}.logo{font-size:32px}.brand{align-items:flex-start;flex-direction:column}.formgrid{grid-template-columns:1fr}}
-</style>
+@media(max-width:800px){
+  .adminGrid{grid-template-columns:1fr}
+  .logo{font-size:32px}
+  .brandIcon{width:42px;height:42px}
+  .logoRow{gap:9px}
+  .brand{align-items:flex-start;flex-direction:column}
+  .formgrid{grid-template-columns:1fr}
+}
 </head>
 <body>
 <header>
