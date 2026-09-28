@@ -1898,6 +1898,19 @@ const file=document.getElementById("profileImage")?.files?.[0];
     }
 
     const existing=db.profile;
+    if(!characterName.trim()){
+  return alert("Character Name cannot be blank.");
+}
+
+await api(
+  '/punks?id=eq.'+encodeURIComponent(punkId),
+  {
+    method:"PATCH",
+    body:JSON.stringify({
+      name:characterName.trim()
+    })
+  }
+);
 
     const payload={
   punk_id:Number(punkId),
@@ -1923,9 +1936,10 @@ const file=document.getElementById("profileImage")?.files?.[0];
       }
     );
 
-    await loadProfile(punkId);
+   await loadDB();
+await loadProfile(punkId);
 
-    alert("PROFILE SAVED.");
+alert("PROFILE SAVED.");
 
   }catch(e){
     alert("Could not save profile: "+e.message);
@@ -2283,9 +2297,15 @@ async function refreshProfileConfig(){
   '&order=name.asc'
 );
 
-    target.innerHTML=`
+   target.innerHTML=`
 
       <div class="fields">
+
+        <div class="field">
+          <label>Character Name</label>
+          <input id="dmProfileCharacterName"
+            value="${esc(punk?.name??"")}">
+        </div>
 
         <div class="field">
           <label>HP</label>
@@ -2598,21 +2618,33 @@ async function saveDMProfileValues(punkId){
 
     const creds=Number(val("dmProfileCreds")||0);
 
-    await api(
-      '/punks?id=eq.'+encodeURIComponent(punkId),
-      {
-        method:"PATCH",
-        body:JSON.stringify({
-          creds
-        })
-      }
-    );
+    const creds=Number(val("dmProfileCreds")||0);
+const characterName=val("dmProfileCharacterName").trim();
+
+if(!characterName){
+  return alert("Character Name cannot be blank.");
+}
+
+await api(
+  '/punks?id=eq.'+encodeURIComponent(punkId),
+  {
+    method:"PATCH",
+    body:JSON.stringify({
+      creds,
+      name:characterName
+    })
+  }
+);
 
 
-    const punk=db.punks.find(x=>x.id==punkId);
+const punk=db.punks.find(x=>x.id==punkId);
 
-    if(punk)
-      punk.creds=creds;
+if(punk){
+  punk.creds=creds;
+  punk.name=characterName;
+}
+
+admin();
 
 
     alert("PUNK PROFILE SAVED.");
