@@ -560,11 +560,23 @@ function render(){
           </div>
 
 
-          <div id="profileEditor" style="display:none">
+         <div id="profileEditor" style="display:none">
 
-            <div class="field">
+             <div class="field">
 
-              <label>PLAYER NAME</label>
+               <label>CHARACTER NAME</label>
+
+               <input
+                 id="profileCharacterName"
+                 value="${esc(punk.name)}"
+                 placeholder="Character name"
+               >
+
+             </div>
+
+             <div class="field">
+
+               <label>PLAYER NAME</label>
 
               <input
                 id="profilePlayerName"
