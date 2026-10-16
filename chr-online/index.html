@@ -84,6 +84,10 @@ body.dark-mode .dmBtn{
   font:600 12px 'IBM Plex Mono';
   cursor:pointer;
 }.nav button.active{background:var(--orange);color:#fff}.banner{background:var(--blue);color:#fff;padding:13px 16px;margin-bottom:22px;font-size:12px;box-shadow:5px 5px 0 var(--ink)}.sectionTitle{font:700 32px 'Space Grotesk';border-bottom:3px solid var(--ink);padding-bottom:8px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.card{background:var(--paper);border:2px solid var(--ink);padding:18px;box-shadow:4px 4px 0 var(--line)}.card h3{font:700 21px 'Space Grotesk';margin:4px 0 10px}.meta{font-size:10px;color:var(--muted);margin-bottom:12px}.story{font-size:13px;line-height:1.6}.label{display:inline-block;background:var(--orange);color:#fff;padding:4px 7px;font-size:9px;font-weight:bold}.photo{width:100%;max-height:220px;object-fit:cover;border:1px solid var(--ink);margin:10px 0}.empty{border:2px dashed var(--line);padding:50px;text-align:center;color:var(--muted)}.pay,.availability{color:var(--green);font-weight:bold}.askBox{max-width:850px}.askBox #aiChat{max-height:560px;overflow-y:auto;padding-right:5px}.askForm textarea,.field textarea,.field input{width:100%;background:#fffdf4;border:2px solid var(--ink);padding:11px;font:12px 'IBM Plex Mono'}.askForm textarea{min-height:110px;resize:vertical}.askForm button,.save{margin-top:10px;background:var(--orange);color:#fff;border:0;padding:11px 15px;font:600 12px 'IBM Plex Mono';cursor:pointer}.answer{margin-top:18px;border-left:6px solid var(--blue);padding:14px;background:#eef2f5}.answer b{color:var(--blue)}#dmPage{display:none}.dmHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.exit{background:var(--orange);color:white;border:0;padding:10px;cursor:pointer}.adminGrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.adminBox{background:var(--paper);border:2px solid var(--ink);padding:18px;box-shadow:5px 5px 0 var(--ink)}.adminBox h2{font:700 24px 'Space Grotesk';margin:0 0 15px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:10px}.field.full{grid-column:1/-1}.field label{display:block;font-size:9px;color:var(--muted);margin-bottom:5px;text-transform:uppercase}.field textarea{min-height:100px;resize:vertical}.adminList{max-height:390px;overflow:auto;border-top:2px solid var(--ink);margin-top:15px}.adminItem{padding:11px 0;border-bottom:1px solid var(--line);font-size:11px;display:flex;justify-content:space-between;gap:8px}.profileList{display:flex;flex-direction:column;gap:10px}.profileRow{display:flex;align-items:center;gap:15px;background:var(--paper);border:2px solid var(--ink);padding:10px 14px;cursor:pointer;box-shadow:4px 4px 0 var(--line);transition:transform .08s,box-shadow .08s}.profileRow:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--orange)}.profileThumb{width:62px;height:62px;object-fit:cover;border:2px solid var(--ink);background:#ddd;flex-shrink:0}.profileInfo{display:flex;flex-direction:column;gap:4px;min-width:0}.profileName{font:700 21px 'Space Grotesk'}.profileHandle{font-size:11px;color:var(--blue)}.profilePlayer{font-size:10px;color:var(--muted)}.small{background:var(--blue);color:white;border:0;padding:6px 8px;font:10px 'IBM Plex Mono';cursor:pointer}.delete{background:var(--ink)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10}.modalBox{background:var(--paper);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--orange);width:min(420px,90vw);padding:24px}.modalBox h2{font:700 28px 'Space Grotesk';margin-top:0}.modalBox input{width:100%;padding:12px;border:2px solid var(--ink);background:#fff;font:12px 'IBM Plex Mono';margin-bottom:8px}.error{color:var(--orange);height:18px;font-size:10px}.actions{display:flex;justify-content:flex-end;gap:8px}.cancel{padding:10px;border:2px solid var(--ink);background:transparent}footer{text-align:center;padding:35px;color:var(--muted);font-size:9px}@media(max-width:780px){.top,.dmHeader{align-items:flex-start;flex-direction:column}.logo{font-size:38px}.adminGrid{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}}
+
+/* CHR-ONLINE AUTOSAVE: debounce, serialized writes, local recovery, save state */
+.autosaveHint{font-size:10px;color:var(--muted);margin:9px 0}
+#autosaveStatus{position:fixed;right:16px;bottom:14px;z-index:30;background:var(--paper);border:2px solid var(--ink);padding:9px 12px;font-size:11px;box-shadow:3px 3px 0 var(--line)}
 </style></head><body>
 <header><div class="top"><div><div class="logo">Chr<span>-</span>Online</div><div class="tag">The World's Best Anti-Social Media Platform!</div></div><div style="display:flex;gap:12px;align-items:center">
   <button class="dmBtn" id="themeToggle" onclick="toggleTheme()">DARK MODE</button>
@@ -132,9 +136,7 @@ body.dark-mode .dmBtn{
     <input id="currencyLabel" placeholder="CRED">
   </div>
 
-  <button class="save" onclick="saveCurrencyLabel()">
-    SAVE CURRENCY NAME
-  </button>
+     <div class="autosaveHint">CURRENCY NAME AUTOSAVES</div>
 
 
   <h2 style="margin-top:25px">STAT CATEGORIES</h2>
@@ -172,7 +174,8 @@ body.dark-mode .dmBtn{
   <div class="adminList" id="askAdmin"></div>
 </div>
 </div></section></main><footer> Chr-Online™ // CUSTOM CAMPAIGN SOCIAL MEDIA NETWORK // UPLOAD IMAGES VIA PASTEBOARD.CO // MADE WITH AI</footer>
-<div class="modal" id="login"><div class="modalBox"><h2>DM ONLY</h2><p style="font-size:11px">AUTHORIZED GAME MASTER ACCESS.</p><input id="pass" type="password" placeholder="PASSWORD" onkeydown="if(event.key==='Enter')checkLogin()"><div class="error" id="loginErr"></div><div class="actions"><button class="cancel" onclick="closeLogin()">CANCEL</button><button class="save" onclick="checkLogin()">ENTER</button></div></div></div>
+<div class="modal" id="login"><div class="modalBox"><h2>DM ONLY</h2><p style="font-size:11px">AUTHORIZED GAME MASTER ACCESS.</p><input id="pass" type="password" placeholder="PASSWORD" onkeydown="if(event.key==='Enter')checkLogin()"><div class="error" id="loginErr"></div><div class="actions"><button class="cancel" onclick="closeLogin()">               DONE
+</button><button class="save" onclick="checkLogin()">ENTER</button></div></div></div>
 <script>
   function toggleTheme(){
   document.body.classList.toggle("dark-mode");
@@ -704,14 +707,14 @@ function render(){
             </div>
 
 
-            <button class="save" onclick="saveProfile()">
-              SAVE PROFILE
+            <button class="save" onclick="closeProfileAutosave()">
+               DONE EDITING
             </button>
 
             <button
               type="button"
               class="cancel"
-              onclick="cancelProfileEdit()"
+              onclick="closeProfileAutosave()"
               style="
                 margin-left:8px;
                 padding:10px;
@@ -1146,15 +1149,7 @@ db.abilities.length
         "
       >${esc(notes)}</textarea>
 
-      <button
-        class="save"
-        onclick="saveQuickProfileField(
-          'notes',
-          document.getElementById('quickNotes').value
-        )"
-      >
-        SAVE NOTES
-      </button>
+             <div class="autosaveHint">NOTES AUTOSAVE WHEN YOU STOP TYPING</div>
 
     </div>
 
@@ -1912,11 +1907,11 @@ async function setInventoryQuantity(inventoryId,quantity){
 
   }catch(e){
 
-    alert("Could not save profile: "+e.message);
+    throw e;
 
   }
 }
-  async function saveProfile(){
+  async function saveProfile(silent=false){
 
   const punkId=selectedProfilePunk;
   if(!punkId)return;
@@ -2002,13 +1997,20 @@ await api(
       }
     );
 
-   await loadDB();
-await loadProfile(punkId);
+       if(silent){
+      db.profile={...(existing||{}),...payload};
+      const punk=db.punks.find(p=>String(p.id)===String(punkId));
+      if(punk)punk.name=characterName.trim();
+      const fileInput=document.getElementById("profileImage");
+      if(fileInput)fileInput.value="";
+    }else{
+      await loadDB();
+      await loadProfile(punkId);
+    }
 
-alert("PROFILE SAVED.");
-
-  }catch(e){
-    alert("Could not save profile: "+e.message);
+    }catch(e){
+     if(silent)throw e;
+     alert("Could not save profile: "+e.message);
   }
 }
 
@@ -2063,7 +2065,7 @@ function exitDM(){
 
 
 async function dmCall(action,payload){const r=await api('/rpc/dm_action',{method:'POST',body:JSON.stringify({p_password:dmPassword,p_action:action,p_payload:payload})});return r}
-async function saveNews(){
+async function saveNews(silent=false){
 
   try{
 
@@ -2087,13 +2089,13 @@ async function saveNews(){
     const input=document.getElementById("newsImgFile");
     if(input)input.value="";
 
-    await loadDB();
-
-    alert("NEWS PUBLISHED.");
+         db.news={headline:x.title,story:x.body,img:image_url};
+     if(!silent){await loadDB();alert("NEWS PUBLISHED.");}
 
   }catch(e){
 
-    alert("DM action failed: "+e.message);
+         if(silent)throw e;
+     alert("DM action failed: "+e.message);
 
   }
 }
@@ -2194,7 +2196,7 @@ async function addCharacter(){let n=val("newChar");if(!n)return;try{await dmCall
 }
 async function answer(id){let x=db.asks.find(a=>a.id==id),a=prompt("AI RESPONSE:",x.answer||"");if(a!==null)try{await dmCall("answer_ask",{id,answer:a});await loadDB()}catch(e){alert("DM action failed: "+e.message)}}
 function row(type,x,label){return `<div class="adminItem"><span>${esc(label)}</span><span><button class="small" onclick="edit('${type}',${x.id})">EDIT</button> <button class="small delete" onclick="remove('${type}',${x.id})">X</button></span></div>`}
-async function saveCurrencyLabel(){
+async function saveCurrencyLabel(silent=false){
 
   const label=val("currencyLabel")||"CRED";
 
@@ -2216,10 +2218,11 @@ async function saveCurrencyLabel(){
 
     db.profileSettings.currency_label=label;
 
-    alert("CURRENCY NAME SAVED.");
+         if(!silent)alert("CURRENCY NAME SAVED.");
 
   }catch(e){
-    alert("Could not save currency name: "+e.message);
+         if(silent)throw e;
+     alert("Could not save currency name: "+e.message);
   }
 }
 
@@ -2418,10 +2421,7 @@ async function refreshProfileConfig(){
       </div>
 
 
-      <button class="save"
-        onclick="saveDMProfileValues(${Number(punkId)})">
-        SAVE PUNK PROFILE
-      </button> 
+             <div class="autosaveHint">PUNK PROFILE AUTOSAVES</div> 
       <div style="
   border-top:3px solid var(--ink);
   margin-top:25px;
@@ -2530,16 +2530,7 @@ async function refreshProfileConfig(){
             </div>
 
 
-            <button
-              class="small"
-              onclick="saveDMInventoryItem(
-                ${Number(punkId)},
-                ${item.id},
-                ${isManual}
-              )"
-            >
-              SAVE ITEM
-            </button>
+                         <div class="autosaveHint">AUTOSAVE ENABLED</div>
 
 
             <button
@@ -2621,7 +2612,7 @@ async function refreshProfileConfig(){
 }
 
 
-async function saveDMProfileValues(punkId){
+async function saveDMProfileValues(punkId,silent=false){
 
   try{
 
@@ -2707,14 +2698,12 @@ if(punk){
   punk.name=characterName;
 }
 
-admin();
-
-
-    alert("PUNK PROFILE SAVED.");
+if(!silent)admin();
 
   }catch(e){
 
-    alert("Could not save Punk profile: "+e.message);
+         if(silent)throw e;
+     alert("Could not save Punk profile: "+e.message);
 
   }
 }async function dmAddInventoryItem(punkId){
@@ -2799,7 +2788,7 @@ async function saveDMInventoryMechanics(
 async function saveDMInventoryItem(
   punkId,
   inventoryId,
-  isManual
+    isManual, silent=false
 ){
 
   try{
@@ -2860,11 +2849,12 @@ await api(
       );
     }
 
-    await loadDMProfileValues();
+         if(!silent)await loadDMProfileValues();
 
-  }catch(e){
+   }catch(e){
 
-    console.error("DM SAVE INVENTORY ERROR:",e);
+     console.error("DM SAVE INVENTORY ERROR:",e);
+     if(silent)throw e;
 
     alert(
       "Could not save inventory item:\n\n"+
@@ -3033,8 +3023,138 @@ if(punkSelect){
   }
 }
 
+document.body.insertAdjacentHTML('beforeend','<div id="autosaveStatus" role="status" aria-live="polite">AUTOSAVE READY</div>');
+
+// Autosave only edits to existing records. POST/ADD/PUBLISH remain deliberate actions.
+const autosaveTimers=new Map(),autosaveQueues=new Map();
+let autosavePending=0,autosaveFailed=false;
+function autosaveState(message){
+  const e=document.getElementById('autosaveStatus');
+  if(e)e.textContent=message;
+}
+function autosaveDraftKey(key){return 'chr-autosave-draft:'+key}
+function queueAutosave(key,task,delay=1500){
+  clearTimeout(autosaveTimers.get(key));
+  autosavePending++;
+  autosaveState('UNSAVED CHANGES...');
+  // Capture the latest task, but coalesce rapid keystrokes.
+  const previous=autosaveTimers.get(key);
+  if(previous)autosavePending=Math.max(1,autosavePending-1);
+  autosaveTimers.set(key,setTimeout(()=>{
+    autosaveTimers.delete(key);
+    const prior=autosaveQueues.get(key)||Promise.resolve();
+    const next=prior.catch(()=>{}).then(async()=>{
+      autosaveState('SAVING...');
+      try{
+        await task();
+        autosaveFailed=false;
+        autosaveState('SAVED ✓');
+      }catch(err){
+        autosaveFailed=true;
+        autosaveState('SAVE FAILED — CHANGES KEPT LOCALLY');
+        console.error('AUTOSAVE FAILED',key,err);
+      }finally{autosavePending=Math.max(0,autosavePending-1)}
+    });
+    autosaveQueues.set(key,next);
+  },delay));
+}
+function autosaveSnapshot(key,fields){
+  const values={};
+  for(const id of fields){const e=document.getElementById(id);if(e&&e.type!=='file')values[id]=e.value}
+  localStorage.setItem(autosaveDraftKey(key),JSON.stringify(values));
+}
+function restoreAutosaveDraft(key,fields){
+  try{const values=JSON.parse(localStorage.getItem(autosaveDraftKey(key))||'null');
+    if(values)for(const id of fields){const e=document.getElementById(id);if(e&&Object.hasOwn(values,id))e.value=values[id]}
+  }catch(e){console.warn('Draft restore failed',e)}
+}
+function scheduleAutosave(key,fields,task){
+  autosaveSnapshot(key,fields);
+  queueAutosave(key,async()=>{
+    await task();
+    // Clear only when no newer keystrokes have changed the stored draft.
+    const saved=JSON.stringify(Object.fromEntries(fields.filter(id=>document.getElementById(id)&&document.getElementById(id).type!=='file').map(id=>[id,document.getElementById(id).value])));
+    if(localStorage.getItem(autosaveDraftKey(key))===saved)localStorage.removeItem(autosaveDraftKey(key));
+  });
+}
+const profileEditFields=['profileCharacterName','profilePlayerName','profileHandle','profilePronouns','profileAbout'];
+const dmEditFields=['dmProfileCharacterName','dmProfileHP','dmProfileArmor','dmProfileCreds'];
+const newsEditFields=['newsHeadline','newsStory'];
+function closeProfileAutosave(){
+  const key='profile:'+selectedProfilePunk;
+  clearTimeout(autosaveTimers.get(key));autosaveTimers.delete(key);
+  autosaveState('SAVING...');
+  const previous=autosaveQueues.get(key)||Promise.resolve();
+  const next=previous.catch(()=>{}).then(()=>saveProfile(true)).then(()=>{
+    localStorage.removeItem(autosaveDraftKey(key));
+    autosaveState('SAVED ✓');
+    cancelProfileEdit();
+    loadProfile(selectedProfilePunk);
+  }).catch(e=>{autosaveState('SAVE FAILED — EDITOR STILL OPEN');alert('Could not save profile: '+e.message)});
+  autosaveQueues.set(key,next);
+}
+// Delegated listener also handles profile and DM inventory inputs built dynamically.
+document.addEventListener('input',event=>{
+  const el=event.target,id=el.id||'';
+  if(!id)return;
+  if(profileEditFields.includes(id)){
+    const key='profile:'+selectedProfilePunk;
+    scheduleAutosave(key,profileEditFields,()=>saveProfile(true));
+  }else if(id==='quickNotes'){
+    scheduleAutosave('notes:'+selectedProfilePunk,['quickNotes'],()=>saveQuickProfileField('notes',val('quickNotes')));
+  }else if(id==='quickHP'||id==='quickArmor'){
+    const field=id==='quickHP'?'hp':'armor';
+    scheduleAutosave(field+':'+selectedProfilePunk,[id],()=>saveQuickProfileField(field,val(id)));
+  }else if(id==='currencyLabel'){
+    scheduleAutosave('currency',['currencyLabel'],()=>saveCurrencyLabel(true));
+  }else if(newsEditFields.includes(id)){
+    scheduleAutosave('news',newsEditFields,()=>saveNews(true));
+  }else if(dmEditFields.includes(id)||id.startsWith('dmStat_')){
+    const punkId=document.getElementById('dmProfilePunk')?.value;
+    if(!punkId)return;
+    const fields=[...dmEditFields,...db.statCategories.map(x=>'dmStat_'+x.id)];
+    scheduleAutosave('dm-profile:'+punkId,fields,()=>saveDMProfileValues(punkId,true));
+  }else if(/^dmInv(Qty|Sell|Mechanics)_\d+$/.test(id)){
+    const match=id.match(/^dmInv(?:Qty|Sell|Mechanics)_(\d+)$/);
+    const inventoryId=Number(match[1]),punkId=document.getElementById('dmProfilePunk')?.value;
+    if(!punkId)return;
+    const fields=['dmInvQty_'+inventoryId,'dmInvSell_'+inventoryId,'dmInvMechanics_'+inventoryId];
+    const isManual=!!document.getElementById('dmInvSell_'+inventoryId);
+    scheduleAutosave('dm-inventory:'+punkId+':'+inventoryId,fields,()=>saveDMInventoryItem(Number(punkId),inventoryId,isManual,true));
+  }else if(id.startsWith('dmInv'))return;
+  else if(editing.id&&((editing.type==='rumors'&&['rumorUser','rumorTitle','rumorText'].includes(id))||(editing.type==='jobs'&&['jobUser','jobTitle','jobText','jobPay'].includes(id))||(editing.type==='hires'&&['hireUser','hireTitle','hireText','hireRate','hireAvail'].includes(id)))){
+    const type=editing.type,recordId=editing.id;
+    const fields=type==='rumors'?['rumorUser','rumorTitle','rumorText']:type==='jobs'?['jobUser','jobTitle','jobText','jobPay']:['hireUser','hireTitle','hireText','hireRate','hireAvail'];
+    scheduleAutosave(type+':'+recordId,fields,async()=>{
+      if(type==='rumors')await dmCall('edit_rumor',{id:recordId,user:val('rumorUser'),title:val('rumorTitle'),text:val('rumorText')});
+      if(type==='jobs')await dmCall('edit_job',{id:recordId,user:val('jobUser'),title:val('jobTitle'),text:val('jobText'),pay:val('jobPay')});
+      if(type==='hires')await dmCall('edit_hire',{id:recordId,user:val('hireUser'),title:val('hireTitle'),text:val('hireText'),rate:val('hireRate'),avail:val('hireAvail')});
+    });
+  }
+});
+document.addEventListener('change',event=>{
+  if(event.target.id==='profileImage'&&event.target.files?.length){
+    autosaveState('SAVING IMAGE...');
+    queueAutosave('profile:'+selectedProfilePunk,()=>saveProfile(true),0);
+  }
+  if(event.target.id==='newsImgFile'&&event.target.files?.length)queueAutosave('news',()=>saveNews(true),0);
+});
+window.addEventListener('online',()=>{
+  autosaveState('CONNECTION RESTORED — CHECK YOUR DRAFT');
+});
+window.addEventListener('beforeunload',e=>{
+  if(autosavePending||autosaveFailed){e.preventDefault();e.returnValue='';}
+});
+const originalEditProfile=editProfile;
+editProfile=function(){originalEditProfile();restoreAutosaveDraft('profile:'+selectedProfilePunk,profileEditFields)};
+const originalLoadDMProfileValues=loadDMProfileValues;
+loadDMProfileValues=async function(){await originalLoadDMProfileValues();
+  const punkId=document.getElementById('dmProfilePunk')?.value;
+  if(punkId)restoreAutosaveDraft('dm-profile:'+punkId,[...dmEditFields,...db.statCategories.map(x=>'dmStat_'+x.id)]);
+};
+
 nav();
 loadDB();
-setInterval(loadDB,5000);
+// Automatic 5-second redraw disabled: it could erase active edits.
   
 </script></body></html>
